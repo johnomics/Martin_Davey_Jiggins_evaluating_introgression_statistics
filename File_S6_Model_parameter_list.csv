@@ -1,0 +1,361 @@
+ModelType,Background_t123,Background_t21,Alternate_t123,Alternate_t23
+gene flow P2-P3,0.6,0.4,0.4,0.2
+gene flow P2-P3,0.8,0.4,0.4,0.2
+gene flow P2-P3,1,0.4,0.4,0.2
+gene flow P2-P3,1.2,0.4,0.4,0.2
+gene flow P2-P3,1.4,0.4,0.4,0.2
+gene flow P2-P3,1.6,0.4,0.4,0.2
+gene flow P2-P3,1.8,0.4,0.4,0.2
+gene flow P2-P3,2,0.4,0.4,0.2
+gene flow P2-P3,0.8,0.6,0.6,0.2
+gene flow P2-P3,0.8,0.6,0.6,0.4
+gene flow P2-P3,1,0.6,0.6,0.2
+gene flow P2-P3,1,0.6,0.6,0.4
+gene flow P2-P3,1.2,0.6,0.6,0.2
+gene flow P2-P3,1.2,0.6,0.6,0.4
+gene flow P2-P3,1.4,0.6,0.6,0.2
+gene flow P2-P3,1.4,0.6,0.6,0.4
+gene flow P2-P3,1.6,0.6,0.6,0.2
+gene flow P2-P3,1.6,0.6,0.6,0.4
+gene flow P2-P3,1.8,0.6,0.6,0.2
+gene flow P2-P3,1.8,0.6,0.6,0.4
+gene flow P2-P3,2,0.6,0.6,0.2
+gene flow P2-P3,2,0.6,0.6,0.4
+gene flow P2-P3,1,0.8,0.8,0.2
+gene flow P2-P3,1,0.8,0.8,0.4
+gene flow P2-P3,1,0.8,0.8,0.6
+gene flow P2-P3,1.2,0.8,0.8,0.2
+gene flow P2-P3,1.2,0.8,0.8,0.4
+gene flow P2-P3,1.2,0.8,0.8,0.6
+gene flow P2-P3,1.4,0.8,0.8,0.2
+gene flow P2-P3,1.4,0.8,0.8,0.4
+gene flow P2-P3,1.4,0.8,0.8,0.6
+gene flow P2-P3,1.6,0.8,0.8,0.2
+gene flow P2-P3,1.6,0.8,0.8,0.4
+gene flow P2-P3,1.6,0.8,0.8,0.6
+gene flow P2-P3,1.8,0.8,0.8,0.2
+gene flow P2-P3,1.8,0.8,0.8,0.4
+gene flow P2-P3,1.8,0.8,0.8,0.6
+gene flow P2-P3,2,0.8,0.8,0.2
+gene flow P2-P3,2,0.8,0.8,0.4
+gene flow P2-P3,2,0.8,0.8,0.6
+gene flow P2-P3,1.2,1,1,0.2
+gene flow P2-P3,1.2,1,1,0.4
+gene flow P2-P3,1.2,1,1,0.6
+gene flow P2-P3,1.2,1,1,0.8
+gene flow P2-P3,1.4,1,1,0.2
+gene flow P2-P3,1.4,1,1,0.4
+gene flow P2-P3,1.4,1,1,0.6
+gene flow P2-P3,1.4,1,1,0.8
+gene flow P2-P3,1.6,1,1,0.2
+gene flow P2-P3,1.6,1,1,0.4
+gene flow P2-P3,1.6,1,1,0.6
+gene flow P2-P3,1.6,1,1,0.8
+gene flow P2-P3,1.8,1,1,0.2
+gene flow P2-P3,1.8,1,1,0.4
+gene flow P2-P3,1.8,1,1,0.6
+gene flow P2-P3,1.8,1,1,0.8
+gene flow P2-P3,2,1,1,0.2
+gene flow P2-P3,2,1,1,0.4
+gene flow P2-P3,2,1,1,0.6
+gene flow P2-P3,2,1,1,0.8
+gene flow P2-P3,1.4,1.2,1.2,0.2
+gene flow P2-P3,1.4,1.2,1.2,0.4
+gene flow P2-P3,1.4,1.2,1.2,0.6
+gene flow P2-P3,1.4,1.2,1.2,0.8
+gene flow P2-P3,1.4,1.2,1.2,1
+gene flow P2-P3,1.6,1.2,1.2,0.2
+gene flow P2-P3,1.6,1.2,1.2,0.4
+gene flow P2-P3,1.6,1.2,1.2,0.6
+gene flow P2-P3,1.6,1.2,1.2,0.8
+gene flow P2-P3,1.6,1.2,1.2,1
+gene flow P2-P3,1.8,1.2,1.2,0.2
+gene flow P2-P3,1.8,1.2,1.2,0.4
+gene flow P2-P3,1.8,1.2,1.2,0.6
+gene flow P2-P3,1.8,1.2,1.2,0.8
+gene flow P2-P3,1.8,1.2,1.2,1
+gene flow P2-P3,2,1.2,1.2,0.2
+gene flow P2-P3,2,1.2,1.2,0.4
+gene flow P2-P3,2,1.2,1.2,0.6
+gene flow P2-P3,2,1.2,1.2,0.8
+gene flow P2-P3,2,1.2,1.2,1
+gene flow P2-P3,1.6,1.4,1.4,0.2
+gene flow P2-P3,1.6,1.4,1.4,0.4
+gene flow P2-P3,1.6,1.4,1.4,0.6
+gene flow P2-P3,1.6,1.4,1.4,0.8
+gene flow P2-P3,1.6,1.4,1.4,1
+gene flow P2-P3,1.6,1.4,1.4,1.2
+gene flow P2-P3,1.8,1.4,1.4,0.2
+gene flow P2-P3,1.8,1.4,1.4,0.4
+gene flow P2-P3,1.8,1.4,1.4,0.6
+gene flow P2-P3,1.8,1.4,1.4,0.8
+gene flow P2-P3,1.8,1.4,1.4,1
+gene flow P2-P3,1.8,1.4,1.4,1.2
+gene flow P2-P3,2,1.4,1.4,0.2
+gene flow P2-P3,2,1.4,1.4,0.4
+gene flow P2-P3,2,1.4,1.4,0.6
+gene flow P2-P3,2,1.4,1.4,0.8
+gene flow P2-P3,2,1.4,1.4,1
+gene flow P2-P3,2,1.4,1.4,1.2
+gene flow P2-P3,1.8,1.6,1.6,0.2
+gene flow P2-P3,1.8,1.6,1.6,0.4
+gene flow P2-P3,1.8,1.6,1.6,0.6
+gene flow P2-P3,1.8,1.6,1.6,0.8
+gene flow P2-P3,1.8,1.6,1.6,1
+gene flow P2-P3,1.8,1.6,1.6,1.2
+gene flow P2-P3,1.8,1.6,1.6,1.4
+gene flow P2-P3,2,1.6,1.6,0.2
+gene flow P2-P3,2,1.6,1.6,0.4
+gene flow P2-P3,2,1.6,1.6,0.6
+gene flow P2-P3,2,1.6,1.6,0.8
+gene flow P2-P3,2,1.6,1.6,1
+gene flow P2-P3,2,1.6,1.6,1.2
+gene flow P2-P3,2,1.6,1.6,1.4
+gene flow P2-P3,2,1.8,1.8,0.2
+gene flow P2-P3,2,1.8,1.8,0.4
+gene flow P2-P3,2,1.8,1.8,0.6
+gene flow P2-P3,2,1.8,1.8,0.8
+gene flow P2-P3,2,1.8,1.8,1
+gene flow P2-P3,2,1.8,1.8,1.2
+gene flow P2-P3,2,1.8,1.8,1.4
+gene flow P2-P3,2,1.8,1.8,1.6
+gene flow P3-P2,0.6,0.4,0.6,0.2
+gene flow P3-P2,0.8,0.4,0.8,0.2
+gene flow P3-P2,1,0.4,1,0.2
+gene flow P3-P2,1.2,0.4,1.2,0.2
+gene flow P3-P2,1.4,0.4,1.4,0.2
+gene flow P3-P2,1.6,0.4,1.6,0.2
+gene flow P3-P2,1.8,0.4,1.8,0.2
+gene flow P3-P2,2,0.4,2,0.2
+gene flow P3-P2,0.8,0.6,0.8,0.2
+gene flow P3-P2,0.8,0.6,0.8,0.4
+gene flow P3-P2,1,0.6,1,0.2
+gene flow P3-P2,1,0.6,1,0.4
+gene flow P3-P2,1.2,0.6,1.2,0.2
+gene flow P3-P2,1.2,0.6,1.2,0.4
+gene flow P3-P2,1.4,0.6,1.4,0.2
+gene flow P3-P2,1.4,0.6,1.4,0.4
+gene flow P3-P2,1.6,0.6,1.6,0.2
+gene flow P3-P2,1.6,0.6,1.6,0.4
+gene flow P3-P2,1.8,0.6,1.8,0.2
+gene flow P3-P2,1.8,0.6,1.8,0.4
+gene flow P3-P2,2,0.6,2,0.2
+gene flow P3-P2,2,0.6,2,0.4
+gene flow P3-P2,1,0.8,1,0.2
+gene flow P3-P2,1,0.8,1,0.4
+gene flow P3-P2,1,0.8,1,0.6
+gene flow P3-P2,1.2,0.8,1.2,0.2
+gene flow P3-P2,1.2,0.8,1.2,0.4
+gene flow P3-P2,1.2,0.8,1.2,0.6
+gene flow P3-P2,1.4,0.8,1.4,0.2
+gene flow P3-P2,1.4,0.8,1.4,0.4
+gene flow P3-P2,1.4,0.8,1.4,0.6
+gene flow P3-P2,1.6,0.8,1.6,0.2
+gene flow P3-P2,1.6,0.8,1.6,0.4
+gene flow P3-P2,1.6,0.8,1.6,0.6
+gene flow P3-P2,1.8,0.8,1.8,0.2
+gene flow P3-P2,1.8,0.8,1.8,0.4
+gene flow P3-P2,1.8,0.8,1.8,0.6
+gene flow P3-P2,2,0.8,2,0.2
+gene flow P3-P2,2,0.8,2,0.4
+gene flow P3-P2,2,0.8,2,0.6
+gene flow P3-P2,1.2,1,1.2,0.2
+gene flow P3-P2,1.2,1,1.2,0.4
+gene flow P3-P2,1.2,1,1.2,0.6
+gene flow P3-P2,1.2,1,1.2,0.8
+gene flow P3-P2,1.4,1,1.4,0.2
+gene flow P3-P2,1.4,1,1.4,0.4
+gene flow P3-P2,1.4,1,1.4,0.6
+gene flow P3-P2,1.4,1,1.4,0.8
+gene flow P3-P2,1.6,1,1.6,0.2
+gene flow P3-P2,1.6,1,1.6,0.4
+gene flow P3-P2,1.6,1,1.6,0.6
+gene flow P3-P2,1.6,1,1.6,0.8
+gene flow P3-P2,1.8,1,1.8,0.2
+gene flow P3-P2,1.8,1,1.8,0.4
+gene flow P3-P2,1.8,1,1.8,0.6
+gene flow P3-P2,1.8,1,1.8,0.8
+gene flow P3-P2,2,1,2,0.2
+gene flow P3-P2,2,1,2,0.4
+gene flow P3-P2,2,1,2,0.6
+gene flow P3-P2,2,1,2,0.8
+gene flow P3-P2,1.4,1.2,1.4,0.2
+gene flow P3-P2,1.4,1.2,1.4,0.4
+gene flow P3-P2,1.4,1.2,1.4,0.6
+gene flow P3-P2,1.4,1.2,1.4,0.8
+gene flow P3-P2,1.4,1.2,1.4,1
+gene flow P3-P2,1.6,1.2,1.6,0.2
+gene flow P3-P2,1.6,1.2,1.6,0.4
+gene flow P3-P2,1.6,1.2,1.6,0.6
+gene flow P3-P2,1.6,1.2,1.6,0.8
+gene flow P3-P2,1.6,1.2,1.6,1
+gene flow P3-P2,1.8,1.2,1.8,0.2
+gene flow P3-P2,1.8,1.2,1.8,0.4
+gene flow P3-P2,1.8,1.2,1.8,0.6
+gene flow P3-P2,1.8,1.2,1.8,0.8
+gene flow P3-P2,1.8,1.2,1.8,1
+gene flow P3-P2,2,1.2,2,0.2
+gene flow P3-P2,2,1.2,2,0.4
+gene flow P3-P2,2,1.2,2,0.6
+gene flow P3-P2,2,1.2,2,0.8
+gene flow P3-P2,2,1.2,2,1
+gene flow P3-P2,1.6,1.4,1.6,0.2
+gene flow P3-P2,1.6,1.4,1.6,0.4
+gene flow P3-P2,1.6,1.4,1.6,0.6
+gene flow P3-P2,1.6,1.4,1.6,0.8
+gene flow P3-P2,1.6,1.4,1.6,1
+gene flow P3-P2,1.6,1.4,1.6,1.2
+gene flow P3-P2,1.8,1.4,1.8,0.2
+gene flow P3-P2,1.8,1.4,1.8,0.4
+gene flow P3-P2,1.8,1.4,1.8,0.6
+gene flow P3-P2,1.8,1.4,1.8,0.8
+gene flow P3-P2,1.8,1.4,1.8,1
+gene flow P3-P2,1.8,1.4,1.8,1.2
+gene flow P3-P2,2,1.4,2,0.2
+gene flow P3-P2,2,1.4,2,0.4
+gene flow P3-P2,2,1.4,2,0.6
+gene flow P3-P2,2,1.4,2,0.8
+gene flow P3-P2,2,1.4,2,1
+gene flow P3-P2,2,1.4,2,1.2
+gene flow P3-P2,1.8,1.6,1.8,0.2
+gene flow P3-P2,1.8,1.6,1.8,0.4
+gene flow P3-P2,1.8,1.6,1.8,0.6
+gene flow P3-P2,1.8,1.6,1.8,0.8
+gene flow P3-P2,1.8,1.6,1.8,1
+gene flow P3-P2,1.8,1.6,1.8,1.2
+gene flow P3-P2,1.8,1.6,1.8,1.4
+gene flow P3-P2,2,1.6,2,0.2
+gene flow P3-P2,2,1.6,2,0.4
+gene flow P3-P2,2,1.6,2,0.6
+gene flow P3-P2,2,1.6,2,0.8
+gene flow P3-P2,2,1.6,2,1
+gene flow P3-P2,2,1.6,2,1.2
+gene flow P3-P2,2,1.6,2,1.4
+gene flow P3-P2,2,1.8,2,0.2
+gene flow P3-P2,2,1.8,2,0.4
+gene flow P3-P2,2,1.8,2,0.6
+gene flow P3-P2,2,1.8,2,0.8
+gene flow P3-P2,2,1.8,2,1
+gene flow P3-P2,2,1.8,2,1.2
+gene flow P3-P2,2,1.8,2,1.4
+gene flow P3-P2,2,1.8,2,1.6
+Ancestral structure,0.4,0.2,0.6,0.4
+Ancestral structure,0.4,0.2,0.8,0.4
+Ancestral structure,0.4,0.2,1,0.4
+Ancestral structure,0.4,0.2,1.2,0.4
+Ancestral structure,0.4,0.2,1.4,0.4
+Ancestral structure,0.4,0.2,1.6,0.4
+Ancestral structure,0.4,0.2,1.8,0.4
+Ancestral structure,0.4,0.2,2,0.4
+Ancestral structure,0.6,0.2,0.8,0.6
+Ancestral structure,0.6,0.2,1,0.6
+Ancestral structure,0.6,0.2,1.2,0.6
+Ancestral structure,0.6,0.2,1.4,0.6
+Ancestral structure,0.6,0.2,1.6,0.6
+Ancestral structure,0.6,0.2,1.8,0.6
+Ancestral structure,0.6,0.2,2,0.6
+Ancestral structure,0.8,0.2,1,0.8
+Ancestral structure,0.8,0.2,1.2,0.8
+Ancestral structure,0.8,0.2,1.4,0.8
+Ancestral structure,0.8,0.2,1.6,0.8
+Ancestral structure,0.8,0.2,1.8,0.8
+Ancestral structure,0.8,0.2,2,0.8
+Ancestral structure,1,0.2,1.2,1
+Ancestral structure,1,0.2,1.4,1
+Ancestral structure,1,0.2,1.6,1
+Ancestral structure,1,0.2,1.8,1
+Ancestral structure,1,0.2,2,1
+Ancestral structure,1.2,0.2,1.4,1.2
+Ancestral structure,1.2,0.2,1.6,1.2
+Ancestral structure,1.2,0.2,1.8,1.2
+Ancestral structure,1.2,0.2,2,1.2
+Ancestral structure,1.4,0.2,1.6,1.4
+Ancestral structure,1.4,0.2,1.8,1.4
+Ancestral structure,1.4,0.2,2,1.4
+Ancestral structure,1.6,0.2,1.8,1.6
+Ancestral structure,1.6,0.2,2,1.6
+Ancestral structure,1.8,0.2,2,1.8
+Ancestral structure,0.6,0.4,0.8,0.6
+Ancestral structure,0.6,0.4,1,0.6
+Ancestral structure,0.6,0.4,1.2,0.6
+Ancestral structure,0.6,0.4,1.4,0.6
+Ancestral structure,0.6,0.4,1.6,0.6
+Ancestral structure,0.6,0.4,1.8,0.6
+Ancestral structure,0.6,0.4,2,0.6
+Ancestral structure,0.8,0.4,1,0.8
+Ancestral structure,0.8,0.4,1.2,0.8
+Ancestral structure,0.8,0.4,1.4,0.8
+Ancestral structure,0.8,0.4,1.6,0.8
+Ancestral structure,0.8,0.4,1.8,0.8
+Ancestral structure,0.8,0.4,2,0.8
+Ancestral structure,1,0.4,1.2,1
+Ancestral structure,1,0.4,1.4,1
+Ancestral structure,1,0.4,1.6,1
+Ancestral structure,1,0.4,1.8,1
+Ancestral structure,1,0.4,2,1
+Ancestral structure,1.2,0.4,1.4,1.2
+Ancestral structure,1.2,0.4,1.6,1.2
+Ancestral structure,1.2,0.4,1.8,1.2
+Ancestral structure,1.2,0.4,2,1.2
+Ancestral structure,1.4,0.4,1.6,1.4
+Ancestral structure,1.4,0.4,1.8,1.4
+Ancestral structure,1.4,0.4,2,1.4
+Ancestral structure,1.6,0.4,1.8,1.6
+Ancestral structure,1.6,0.4,2,1.6
+Ancestral structure,1.8,0.4,2,1.8
+Ancestral structure,0.8,0.6,1,0.8
+Ancestral structure,0.8,0.6,1.2,0.8
+Ancestral structure,0.8,0.6,1.4,0.8
+Ancestral structure,0.8,0.6,1.6,0.8
+Ancestral structure,0.8,0.6,1.8,0.8
+Ancestral structure,0.8,0.6,2,0.8
+Ancestral structure,1,0.6,1.2,1
+Ancestral structure,1,0.6,1.4,1
+Ancestral structure,1,0.6,1.6,1
+Ancestral structure,1,0.6,1.8,1
+Ancestral structure,1,0.6,2,1
+Ancestral structure,1.2,0.6,1.4,1.2
+Ancestral structure,1.2,0.6,1.6,1.2
+Ancestral structure,1.2,0.6,1.8,1.2
+Ancestral structure,1.2,0.6,2,1.2
+Ancestral structure,1.4,0.6,1.6,1.4
+Ancestral structure,1.4,0.6,1.8,1.4
+Ancestral structure,1.4,0.6,2,1.4
+Ancestral structure,1.6,0.6,1.8,1.6
+Ancestral structure,1.6,0.6,2,1.6
+Ancestral structure,1.8,0.6,2,1.8
+Ancestral structure,1,0.8,1.2,1
+Ancestral structure,1,0.8,1.4,1
+Ancestral structure,1,0.8,1.6,1
+Ancestral structure,1,0.8,1.8,1
+Ancestral structure,1,0.8,2,1
+Ancestral structure,1.2,0.8,1.4,1.2
+Ancestral structure,1.2,0.8,1.6,1.2
+Ancestral structure,1.2,0.8,1.8,1.2
+Ancestral structure,1.2,0.8,2,1.2
+Ancestral structure,1.4,0.8,1.6,1.4
+Ancestral structure,1.4,0.8,1.8,1.4
+Ancestral structure,1.4,0.8,2,1.4
+Ancestral structure,1.6,0.8,1.8,1.6
+Ancestral structure,1.6,0.8,2,1.6
+Ancestral structure,1.8,0.8,2,1.8
+Ancestral structure,1.2,1,1.4,1.2
+Ancestral structure,1.2,1,1.6,1.2
+Ancestral structure,1.2,1,1.8,1.2
+Ancestral structure,1.2,1,2,1.2
+Ancestral structure,1.4,1,1.6,1.4
+Ancestral structure,1.4,1,1.8,1.4
+Ancestral structure,1.4,1,2,1.4
+Ancestral structure,1.6,1,1.8,1.6
+Ancestral structure,1.6,1,2,1.6
+Ancestral structure,1.8,1,2,1.8
+Ancestral structure,1.4,1.2,1.6,1.4
+Ancestral structure,1.4,1.2,1.8,1.4
+Ancestral structure,1.4,1.2,2,1.4
+Ancestral structure,1.6,1.2,1.8,1.6
+Ancestral structure,1.6,1.2,2,1.6
+Ancestral structure,1.8,1.2,2,1.8
+Ancestral structure,1.6,1.4,1.8,1.6
+Ancestral structure,1.6,1.4,2,1.6
+Ancestral structure,1.8,1.4,2,1.8
+Ancestral structure,1.8,1.6,2,1.8
