@@ -1,0 +1,17 @@
+seqgen:
+    m: HKY
+    l: 20000
+ms:
+    pops:
+        - {name: 1, seqs: 8}
+        - {name: 2, seqs: 8}
+        - {name: 3, seqs: 8}
+        - {name: 4, seqs: 8}
+    opts:
+        genperyear: 4
+        n0: 1000000
+        mu: 2.5e-9
+        split:
+            - {time: 3,   pops: [4,1]}
+            - {time: 2, pops: [3,1]}
+            - {time: 1.6, pops: [2,3]}

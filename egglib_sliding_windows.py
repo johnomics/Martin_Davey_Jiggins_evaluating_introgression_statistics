@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 # egglib_sliding_windows.py
-# calculkate ABBA BABA stats, dxy and S for sliding windows in genomic data
+# calculate ABBA BABA stats, dxy and S for sliding windows in genomic data
 
 # Written for "Evaluating statistics for the identification of introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
-# John Davey:   jd626@cam.ac.uk
 # Simon Martin: shm45@cam.ac.uk
-# November-December 2013
+# John Davey:   jd626@cam.ac.uk
+# October-December 2013
 
 
 

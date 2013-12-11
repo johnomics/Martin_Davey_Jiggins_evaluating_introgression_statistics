@@ -5,8 +5,8 @@
 
 # Written for "Evaluating statistics for the identification of introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
-# John Davey:   jd626@cam.ac.uk
 # Simon Martin: shm45@cam.ac.uk
+# John Davey:   jd626@cam.ac.uk
 # November-December 2013
 
 library(parallel)
@@ -24,7 +24,7 @@ options<-list(make_option(c("-T","--threads"),default=1,help="Number of threads 
 
 opt<-parse_args(OptionParser(option_list=options))
 
-if (opt$listofmodels == "") stop("Please specify a list of model parameter combinations in CSV format with -l")
+if (opt$listofmodels == "" & opt$realdata == "") stop("Please specify a list of model parameter combinations in CSV format with -l")
 if (opt$modelfiles == "" & opt$realdata == "") stop("Please specify a folder of model files with -m or a CSV file containing real data with -r")
 if (opt$modelfiles != "" & !file.exists(opt$modelfiles)) stop(paste("Directory", opt$modelfiles, "does not exist! Please specify a valid directory with -m"))
 if (opt$realdata != "" & !file.exists(opt$realdata)) stop(paste("Real data file", opt$realdata, "does not exist! Please specify a valid file with -r"))

@@ -1,5 +1,15 @@
 #!/usr/bin/env Rscript
 
+# Figure_S1_S2.R
+# Generate the plots for Figures S1 and S2 as PDF files
+
+# Written for "Evaluating statistics for the identification of introgressed loci"
+# by Simon H. Martin, John W. Davey and Chris D. Jiggins
+# Simon Martin: shm45@cam.ac.uk
+# John Davey:   jd626@cam.ac.uk
+# November-December 2013
+
+
 library(optparse)
 suppressMessages(library(ggplot2))
 library(plyr)

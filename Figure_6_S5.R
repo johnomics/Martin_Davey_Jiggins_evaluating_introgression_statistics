@@ -1,5 +1,14 @@
 #!/usr/bin/env Rscript
 
+# Figure_6_S5.R
+# Generate the plots for Figure 6 and Figure S5 as PDF files
+
+# Written for "Evaluating statistics for the identification of introgressed loci"
+# by Simon H. Martin, John W. Davey and Chris D. Jiggins
+# Simon Martin: shm45@cam.ac.uk
+# John Davey:   jd626@cam.ac.uk
+# November-December 2013
+
 suppressMessages(library(ggplot2))
 suppressMessages(library(reshape))
 library(plyr)
@@ -143,7 +152,7 @@ grid.text("D",x=0.025,y=0.99,just=c("left","top"),vp=viewport(layout.pos.row=2,l
 dev.off()
 
 # Figure S5 - real data
-real<-read.delim("Heliconius_genome_windows.dxy.summary.tsv",stringsAsFactors=FALSE)
+real<-read.delim("Heliconius_autosome_windows.dxy.summary.tsv",stringsAsFactors=FALSE)
 
 real.dxy<-get.dxy.df(real)
 real.dxy$Stat<-factor(real.dxy$Stat,levels=c("D","mfD0"))
