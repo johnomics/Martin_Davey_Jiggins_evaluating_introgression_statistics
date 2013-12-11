@@ -3,7 +3,7 @@
 # Figure_6_S5.R
 # Generate the plots for Figure 6 and Figure S5 as PDF files
 
-# Written for "Evaluating statistics for the identification of introgressed loci"
+# Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk

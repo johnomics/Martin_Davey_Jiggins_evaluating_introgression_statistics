@@ -1,4 +1,4 @@
-This repository contains code and data for the manuscript "Evaluating statistics for the identification of introgressed loci" by Simon H. Martin (<shm45@cam.ac.uk>), John W. Davey (<jd626@cam.ac.uk>) and Chris D. Jiggins, available on bioRxiv.
+This repository contains code and data for the manuscript "Evaluating the use of ABBA-BABA statistics to locate introgressed loci" by Simon H. Martin (<shm45@cam.ac.uk>), John W. Davey (<jd626@cam.ac.uk>) and Chris D. Jiggins, available on bioRxiv.
 
 The results in the paper were generated as follows. If details are missing or incorrect, please tell us.
 
@@ -51,12 +51,12 @@ python egglib_sliding_windows.py -i HmYb.calls -o Heliconius_HmYb_windows.csv -w
 Commands to calculate values for the whole genome were, for autosomes:
 
 ```
-python egglib_sliding_windows.py -i Heliconius_autosomes  -o Heliconius_autosome_windows.csv -w 5000 -m 1000 -s 5000 -p "P1[ag108,ag572,ag112,ag569];P2[am216,am160,am48,am293];P3[tiP86,tiP313,tiP84,tiP57];O[hec273,eth67,ser202,par371]" -a S,popS,px,dxy,ABBABABA --minimumExploitableData 0.5 & ); done
+python egglib_sliding_windows.py -i Heliconius_autosomes  -o Heliconius_autosome_windows.csv -w 5000 -m 1000 -s 5000 -p "P1[ag108,ag572,ag112,ag569];P2[am216,am160,am48,am293];P3[tiP86,tiP313,tiP84,tiP57];O[hec273,eth67,ser202,par371]" -a S,popS,px,dxy,ABBABABA --minimumExploitableData 0.5
 ```
 
 And for the Z chromosome:
 ```
-python egglib_sliding_windows.py -i Heliconius_Zchromosome  -o Heliconius_Zchromosome_windows.csv -w 1000 -m 2500 -s 5000 -p "P1[ag108,ag572,ag112,ag569];P2[am216,am160,am48,am293];P3[tiP86,tiP313,tiP84,tiP57];O[hec273,eth67,ser202,par371]" -a S,popS,px,dxy,ABBABABA --minimumExploitableData 0.5 --ploidy 2,2,2,2,2,1,2,1,2,2,2,2,2,2,2,2
+python egglib_sliding_windows.py -i Heliconius_Zchromosome  -o Heliconius_Zchromosome_windows.csv -w 1000 -m 1000 -s 5000 -p "P1[ag108,ag572,ag112,ag569];P2[am216,am160,am48,am293];P3[tiP86,tiP313,tiP84,tiP57];O[hec273,eth67,ser202,par371]" -a S,popS,px,dxy,ABBABABA --minimumExploitableData 0.5 --ploidy 2,2,2,2,2,1,2,1,2,2,2,2,2,2,2,2
 ```
 
 Summary statistics were then generated for the real data:

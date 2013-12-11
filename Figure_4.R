@@ -3,7 +3,7 @@
 # Figure_4.R
 # Generate plots across BD and Yb bac walk regions for Figure 4 as a PDF file
 
-# Written for "Evaluating statistics for the identification of introgressed loci"
+# Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
