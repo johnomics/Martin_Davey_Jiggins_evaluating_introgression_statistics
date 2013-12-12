@@ -1,4 +1,4 @@
-This repository contains code and data for the manuscript "Evaluating the use of ABBA-BABA statistics to locate introgressed loci" by Simon H. Martin (<shm45@cam.ac.uk>), John W. Davey (<jd626@cam.ac.uk>) and Chris D. Jiggins, available on bioRxiv.
+This repository contains code and data for the manuscript "Evaluating the use of ABBA-BABA statistics to locate introgressed loci" by Simon H. Martin (<shm45@cam.ac.uk>), John W. Davey (<jd626@cam.ac.uk>) and Chris D. Jiggins, available on [bioRxiv](http://biorxiv.org) ([doi: 10.1101/001347](http://biorxiv.org/content/early/2013/12/11/001347)).
 
 The results in the paper were generated as follows. If details are missing or incorrect, please tell us.
 
