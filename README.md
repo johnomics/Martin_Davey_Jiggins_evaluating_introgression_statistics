@@ -79,3 +79,4 @@ The figures were generated from the real data and `partition.summary` and 'dxy.s
 ./Figure_S1_S2.R -i model_files_win10000_size5000.partition.summary.tsv
 ./Figure_S3_S4.R
 ```
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/a5cff0af4f8cf280f6954c7dcd702477 "githalytics.com")](http://githalytics.com/johnomics/Martin_Davey_Jiggins_evaluating_introgression_statistics)
