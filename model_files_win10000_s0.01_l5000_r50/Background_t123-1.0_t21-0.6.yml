@@ -1,0 +1,16 @@
+seqgen:
+    m: HKY
+    l: 5000
+    s: 0.01
+ms:
+    pops:
+        - {name: 1, seqs: 8}
+        - {name: 2, seqs: 8}
+        - {name: 3, seqs: 8}
+        - {name: 4, seqs: 8}
+    opts:
+        recombination: 50
+        split:
+            - {units: 3,   pops: [4,1]}
+            - {units: 1.0, pops: [3,1]}
+            - {units: 0.6, pops: [2,1]}

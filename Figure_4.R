@@ -1,68 +1,144 @@
 #!/usr/bin/env Rscript
 
 # Figure_4.R
-# Generate plots across BD and Yb bac walk regions for Figure 4 as a PDF file
+# Plot for simulations of D, f and dxy
 
-# Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
+# Written for "Evaluating statistics for the identification of introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
-# Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# November-December 2013
+# Simon Martin: shm45@cam.ac.uk
+# October-December 2013, May 2014
 
 
-#input data
+big_table <- read.delim("model_files_win10000_s0.01_l5000_r50.alternate_models.dxy.summary.sg.tsv", sep = "\t")
 
-yb <- read.csv("Heliconius_HmB_windows.csv")
-yb <- subset(yb, is.na(D) == F & is.na(mf) == F & sitesOverMinExD >= 1000)
+null_table <- read.delim("model_files_win10000_s0.01_l5000_r50.null_models.dxy.summary.sg.tsv", sep = "\t")
 
+big_table_5 <- read.delim("model_files_win10000_s0.01_l5000_r5.alternate_models.dxy.summary.sg.tsv", sep = "\t")
 
-bd <- read.csv("Heliconius_HmYb_windows.csv")
-bd <- subset(bd, is.na(D) == F & is.na(mf) == F & sitesOverMinExD >= 1000)
-
-pdf("Figure_4.pdf", width = 12, height = 7)
+null_table_5 <- read.delim("model_files_win10000_s0.01_l5000_r5.null_models.dxy.summary.sg.tsv", sep = "\t")
 
 
-par(mfrow = c(4,2), mar = c(2.5,2,0.5,1))
+png("Figure_4.png", width = 3000, height = 1500, res = 400)
+par(mfrow = c(2,4), mar = c(3,3.5,1,0.5))
 
-#counts of ABBA and BABA per 100 sites
-plot(0,0,cex = 0, ylim = c(0,1.2), bty = "n", xaxt = "n", xlab = "", xlim = c(0,1200000), ylab = "count per 100 sites")
-polygon(c(min(yb$position),yb$position,max(yb$position)),c(0,yb$ABBA*100/yb$sites,0), border = NA, col = rgb(255,102,164,150, maxColorValue = 255))
-polygon(c(min(yb$position),yb$position,max(yb$position)),c(0,yb$BABA*100/yb$sites,0), border = NA, col = rgb(60,192,176,150, maxColorValue = 255))
-
-legend(10000, 1.2, legend = c("ABBA", "BABA"), fill = c(rgb(255,102,164,150, maxColorValue = 255),rgb(60,192,176,150, maxColorValue = 255)), bty = "n", border = NA, cex = 0.9)
-
-plot(0,0,cex = 0, ylim = c(0,1.2), bty = "n", xaxt = "n", xlab = "", xlim = c(0,1200000), ylab = "count per 100 sites")
-polygon(c(min(bd$position),bd$position,max(bd$position)),c(0,bd$ABBA*100/bd$sites,0), border = NA, col = rgb(255,102,164,150, maxColorValue = 255))
-polygon(c(min(bd$position),bd$position,max(bd$position)),c(0,bd$BABA*100/bd$sites,0), border = NA, col = rgb(60,192,176,150, maxColorValue = 255))
+pos = c(1,2,4,5,7,8)
+pos_null = c(4,5,7,8)
 
 
-# D stat
-plot(0,0,cex = 0, ylim = c(-1,1), bty = "n", xlab = "", xlim = c(0,1200000), ylab = "f", xaxt = "n")
-polygon(c(min(yb$position),yb$position,max(yb$position)),c(0,yb$D,0), border = NA, col = rgb(0,0,0,0.5))
+bt123 = 0.8
+bt21 = 0.6
+at123 = 0.6
+at23 = 0.4
 
-plot(0,0,cex = 0, ylim = c(-1,1), bty = "n", xlab = "", xlim = c(0,1200000), ylab = "f", xaxt = "n")
-polygon(c(min(bd$position),bd$position,max(bd$position)),c(0,bd$D,0), border = NA, col = rgb(0,0,0,0.5))
+plot_table <- subset(big_table, Background_t123 == bt123 & Background_t21 == bt21 & Alternate_t123 == at123 & Alternate_t23 == at23 & Variable == "P2P3_dxy")
+
+plot(pos,plot_table$Mean[c(1,2,3,4,9,10)], ylim = c(0,0.033), col = c("#ad5c08", "#00ba38", rep(c( "gray", "black"),4)), pch = 19, xlim = c(0,9),yaxp = c(0,0.03,3), xaxt = "n", ylab = "")
+segments(pos,plot_table$Mean[c(1,2,3,4,9,10)]+plot_table$SD[c(1,2,3,4,9,10)], pos, plot_table$Mean[c(1,2,3,4,9,10)]-plot_table$SD[c(1,2,3,4,9,10)], col = c("#ad5c08", "#00ba38", rep(c( "gray", "black"),4)))
+axis(1, at = c(1.5,4.5, 7.5), labels = c("Sim.", expression(italic("D")), expression(italic("f"["d"]))))
+mtext(side = 2, text = expression(italic("d"["XY"])), line = 2)
+text(c(1.5,4.5,7.5), rep(0.01,3), ifelse(plot_table$w.p.background.higher[c(1,3,9)] < 0.001, "*", ""), cex = 2)
+
+bt123 = 0.8
+bt21 = 0.6
+at123 = 0.8
+at23 = 0.4
+
+plot_table <- subset(big_table, Background_t123 == bt123 & Background_t21 == bt21 & Alternate_t123 == at123 & Alternate_t23 == at23 & Variable == "P2P3_dxy")
+
+plot(pos,plot_table$Mean[c(1,2,3,4,9,10)], ylim = c(0,0.033), col = c("#ad5c08", "#619cff", rep(c( "gray", "black"),4)), pch = 19, xlim = c(0,9),yaxp = c(0,0.03,3), xaxt = "n", ylab = "")
+segments(pos,plot_table$Mean[c(1,2,3,4,9,10)]+plot_table$SD[c(1,2,3,4,9,10)],pos, plot_table$Mean[c(1,2,3,4,9,10)]-plot_table$SD[c(1,2,3,4,9,10)], col = c("#ad5c08", "#619cff", rep(c( "gray", "black"),4)))
+axis(1, at = c(1.5,4.5, 7.5), labels = c("Sim.", expression(italic("D")), expression(italic("f"["d"]))))
+text(c(1.5,4.5,7.5), rep(0.01,3), ifelse(plot_table$w.p.background.higher[c(1,3,9)] < 0.001, "*", ""), cex = 2)
 
 
 
-# f stat
-plot(0,0,cex = 0, ylim = c(0,1), bty = "n", xlab = "", xlim = c(0,1200000), ylab = "f", xaxt = "n")
-polygon(c(min(yb$position[yb$D >= 0]),yb$position[yb$D >= 0],max(yb$position[yb$D >= 0])),c(0,yb$mf[yb$D >= 0],0), border = NA, col = rgb(0,0,0,0.5))
+bt123 = 0.8
+bt21 = 0.6
+at123 = 1
+at23 = 0.8
 
-plot(0,0,cex = 0, ylim = c(0,1), bty = "n", xlab = "", xlim = c(0,1200000), ylab = "f", xaxt = "n")
-polygon(c(min(bd$position[bd$D >= 0]),bd$position[bd$D >= 0],max(bd$position[bd$D >= 0])),c(0,bd$mf[bd$D >= 0],0), border = NA, col = rgb(0,0,0,0.5))
+plot_table <- subset(big_table, Background_t123 == bt123 & Background_t21 == bt21 & Alternate_t123 == at123 & Alternate_t23 == at23 & Variable == "P2P3_dxy")
+
+plot(pos,plot_table$Mean[c(1,2,3,4,9,10)], ylim = c(0,0.033), col = c("#ad5c08", "#f8766d", rep(c( "gray", "black"),4)), pch = 19, xlim = c(0,9),yaxp = c(0,0.03,3), xaxt = "n", ylab = "")
+segments(pos,plot_table$Mean[c(1,2,3,4,9,10)]+plot_table$SD[c(1,2,3,4,9,10)], pos, plot_table$Mean[c(1,2,3,4,9,10)]-plot_table$SD[c(1,2,3,4,9,10)], col = c("#ad5c08", "#f8766d", rep(c( "gray", "black"),4)))
+axis(1, at = c(1.5,4.5, 7.5), labels = c("Sim.", expression(italic("D")), expression(italic("f"["d"]))))
+text(c(1.5,4.5,7.5), rep(0.01,3), ifelse(plot_table$w.p.background.higher[c(1,3,9)] < 0.001, "*", ""), cex = 2)
 
 
-# dXY
 
-plot(0,0,cex = 0, ylim = c(0,0.06), bty = "n", xlab = "", xlim = c(0,1200000), ylab = "f", xaxt = "n")
-polygon(c(min(yb$position),yb$position[is.na(yb$P2P3_dxy) == F],max(yb$position)),c(0,yb$P2P3_dxy[is.na(yb$P2P3_dxy) == F],0), border = NA, col = rgb(0,0,0,0.5))
-axis(1,at = seq(0,1200000,200000), labels = seq(0, 1200, 200))
 
-plot(0,0,cex = 0, ylim = c(0,0.06), bty = "n", xlab = "", xlim = c(0,1200000), ylab = "f", xaxt = "n")
-polygon(c(min(bd$position),bd$position[is.na(bd$P2P3_dxy) == F],max(bd$position)),c(0,bd$P2P3_dxy[is.na(bd$P2P3_dxy) == F],0), border = NA, col = rgb(0,0,0,0.5))
-axis(1,at = seq(0,800000,200000), labels = seq(0,800,200))
+bt123 = 0.8
+bt21 = 0.6
+
+plot_table <- subset(null_table, Background_t123 == bt123 & Background_t21 == bt21 & Variable == "P2P3_dxy")
+
+plot(pos_null,plot_table$Mean[c(1,2,7,8)], ylim = c(0,0.033), col = rep(c( "gray", "black"),5), pch = 19, xlim = c(0,9),yaxp = c(0,0.03,3), xaxt = "n", ylab = "")
+segments(pos_null,plot_table$Mean[c(1,2,7,8)]+plot_table$SD[c(1,2,7,8)], pos_null, plot_table$Mean[c(1,2,7,8)]-plot_table$SD[c(1,2,7,8)], col = rep(c( "gray", "black"),5))
+axis(1, at = c(4.5, 7.5), labels = c(expression(italic("D")), expression(italic("f"["d"]))))
+text(c(4.5,7.5), rep(0.01,2), ifelse(plot_table$w.p.background.higher[c(1,7)] < 0.001, "*", ""), cex = 2)
+
+
+### low rec
+
+
+bt123 = 0.8
+bt21 = 0.6
+at123 = 0.6
+at23 = 0.4
+
+plot_table <- subset(big_table_5, Background_t123 == bt123 & Background_t21 == bt21 & Alternate_t123 == at123 & Alternate_t23 == at23 & Variable == "P2P3_dxy")
+
+plot(pos,plot_table$Mean[c(1,2,3,4,9,10)], ylim = c(0,0.033), col = c("#ad5c08", "#00ba38", rep(c( "gray", "black"),4)), pch = 19, xlim = c(0,9),yaxp = c(0,0.03,3), xaxt = "n", ylab = "")
+segments(pos,plot_table$Mean[c(1,2,3,4,9,10)]+plot_table$SD[c(1,2,3,4,9,10)], pos, plot_table$Mean[c(1,2,3,4,9,10)]-plot_table$SD[c(1,2,3,4,9,10)], col = c("#ad5c08", "#00ba38", rep(c( "gray", "black"),4)))
+axis(1, at = c(1.5,4.5, 7.5), labels = c("Sim.", expression(italic("D")), expression(italic("f"["d"]))))
+mtext(side = 2, text = expression(italic("d"["XY"])), line = 2)
+text(c(1.5,4.5,7.5), rep(0.01,3), ifelse(plot_table$w.p.background.higher[c(1,3,9)] < 0.001, "*", ""), cex = 2)
+
+
+bt123 = 0.8
+bt21 = 0.6
+at123 = 0.8
+at23 = 0.4
+
+plot_table <- subset(big_table_5, Background_t123 == bt123 & Background_t21 == bt21 & Alternate_t123 == at123 & Alternate_t23 == at23 & Variable == "P2P3_dxy")
+
+plot(pos,plot_table$Mean[c(1,2,3,4,9,10)], ylim = c(0,0.033), col = c("#ad5c08", "#619cff", rep(c( "gray", "black"),4)), pch = 19, xlim = c(0,9),yaxp = c(0,0.03,3), xaxt = "n", ylab = "")
+segments(pos,plot_table$Mean[c(1,2,3,4,9,10)]+plot_table$SD[c(1,2,3,4,9,10)],pos, plot_table$Mean[c(1,2,3,4,9,10)]-plot_table$SD[c(1,2,3,4,9,10)], col = c("#ad5c08", "#619cff", rep(c( "gray", "black"),4)))
+axis(1, at = c(1.5,4.5, 7.5), labels = c("Sim.", expression(italic("D")), expression(italic("f"["d"]))))
+text(c(1.5,4.5,7.5), rep(0.01,3), ifelse(plot_table$w.p.background.higher[c(1,3,9)] < 0.001, "*", ""), cex = 2)
+
+
+
+bt123 = 0.8
+bt21 = 0.6
+at123 = 1
+at23 = 0.8
+
+plot_table <- subset(big_table_5, Background_t123 == bt123 & Background_t21 == bt21 & Alternate_t123 == at123 & Alternate_t23 == at23 & Variable == "P2P3_dxy")
+
+plot(pos,plot_table$Mean[c(1,2,3,4,9,10)], ylim = c(0,0.033), col = c("#ad5c08", "#f8766d", rep(c( "gray", "black"),4)), pch = 19, xlim = c(0,9),yaxp = c(0,0.03,3), xaxt = "n", ylab = "")
+segments(pos,plot_table$Mean[c(1,2,3,4,9,10)]+plot_table$SD[c(1,2,3,4,9,10)], pos, plot_table$Mean[c(1,2,3,4,9,10)]-plot_table$SD[c(1,2,3,4,9,10)], col = c("#ad5c08", "#f8766d", rep(c( "gray", "black"),4)))
+axis(1, at = c(1.5,4.5, 7.5), labels = c("Sim.", expression(italic("D")), expression(italic("f"["d"]))))
+text(c(1.5,4.5,7.5), rep(0.01,3), ifelse(plot_table$w.p.background.higher[c(1,3,9)] < 0.001, "*", ""), cex = 2)
+
+
+
+
+bt123 = 0.8
+bt21 = 0.6
+
+plot_table <- subset(null_table_5, Background_t123 == bt123 & Background_t21 == bt21 & Variable == "P2P3_dxy")
+
+plot(pos_null,plot_table$Mean[c(1,2,7,8)], ylim = c(0,0.033), col = rep(c( "gray", "black"),5), pch = 19, xlim = c(0,9),yaxp = c(0,0.03,3), xaxt = "n", ylab = "")
+segments(pos_null,plot_table$Mean[c(1,2,7,8)]+plot_table$SD[c(1,2,7,8)], pos_null, plot_table$Mean[c(1,2,7,8)]-plot_table$SD[c(1,2,7,8)], col = rep(c( "gray", "black"),5))
+axis(1, at = c(4.5, 7.5), labels = c(expression(italic("D")), expression(italic("f"["d"]))))
+text(c(4.5,7.5), rep(0.01,2), ifelse(plot_table$w.p.background.higher[c(1,7)] < 0.001, "*", ""), cex = 2)
+
 
 
 dev.off()
+
+
+
 

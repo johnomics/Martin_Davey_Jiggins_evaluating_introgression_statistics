@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 # egglib_sliding_windows.py
-# calculate ABBA-BABA stats, dxy and S for sliding windows in genomic data
+# calculate ABBA-BABA stats, dxy, pi and S for sliding windows in genomic data
 
 # Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# October-December 2013
+# October-December 2013, May 2014
 
 
 
@@ -129,9 +129,6 @@ def mostCommon(things):
       output.append(uniqueThings[n])
   return output
 
-def exclude(things, x):
-  return [i for i in things if i != x]
-
 def unique(things):
   output = list(set(things))
   output.sort()
@@ -217,28 +214,36 @@ def colBaseCounts(align, columnNumber):
   return output
 
 
-
-#version using frequencies as in Durand et al 2011 eqn 2.
-def ABBABABA(align, P1, P2, P3, P4):
+#version using frequencies to calculate fhom and fd
+def ABBABABA(align, P1, P2, P3, P4, P3a = None, P3b = None):
   p1Align = AlignByGroupNumber(align,P1)
   p2Align = AlignByGroupNumber(align,P2)
   p3Align = AlignByGroupNumber(align,P3)
   p4Align = AlignByGroupNumber(align,P4)
+  if P3a == None or P3b == None:
+    P3Half = len(P3Align)/2
+    P3aAlign = P3Align.slice(0,P3Half)
+    P3bAlign = P3Align.slice(P3Half,len(P3Align))
+  else:
+    p3aAlign = AlignByGroupNumber(align,P3a)
+    p3bAlign = AlignByGroupNumber(align,P3b)
   ABBAsum = 0.0
   BABAsum = 0.0
-  maxABBAsum = 0.0
-  maxBABAsum = 0.0
-  maxABBAsumB = 0.0
-  maxBABAsumB = 0.0
+  maxABBAsumG = 0.0
+  maxBABAsumG = 0.0
+  maxABBAsumHom = 0.0
+  maxBABAsumHom = 0.0
+  maxABBAsumD = 0.0
+  maxBABAsumD = 0.0
   #get derived frequencies for all biallelic siites
   for i in align.polymorphism(minimumExploitableData = 0)["siteIndices"]:
     #skip this site if not biallelic
-    bases = exclude(align.column(i), "N")
+    bases = [base for base in align.column(i) if base != "N"]
     alleles = unique(bases)
     if len(alleles) != 2: continue
     #get derived state
     #if the outgroup is fixed, then that is the ancestral state - otherwise the anc state is the most common allele overall
-    p4Alleles = unique(exclude(p4Align.column(i), "N"))
+    p4Alleles = unique([base for base in p4Align.column(i) if base != "N"])
     if len(p4Alleles) == 1:
       derived = [a for a in alleles if a != p4Alleles[0]][0]
     else:
@@ -248,18 +253,22 @@ def ABBABABA(align, P1, P2, P3, P4):
     p2Freq = colFreqs(p2Align, i)[derived]
     p3Freq = colFreqs(p3Align, i)[derived]
     p4Freq = colFreqs(p4Align, i)[derived]
+    p3aFreq = colFreqs(p3aAlign, i)[derived]
+    p3bFreq = colFreqs(p3bAlign, i)[derived]
     # get weigtings for ABBAs and BABAs
     try: # this was added to ignore crashes when there is missing data for a population at a site - we just ignore these sites
       ABBAsum += (1 - p1Freq) * p2Freq * p3Freq * (1 - p4Freq)
       BABAsum += p1Freq * (1 - p2Freq) * p3Freq * (1 - p4Freq)
-      maxABBAsum += (1 - p1Freq) * p3Freq * p3Freq * (1 - p4Freq)
-      maxBABAsum += p1Freq * (1 - p3Freq) * p3Freq * (1 - p4Freq)
+      maxABBAsumG += (1 - p1Freq) * p3aFreq * p3bFreq * (1 - p4Freq)
+      maxBABAsumG += p1Freq * (1 - p3aFreq) * p3bFreq * (1 - p4Freq)
+      maxABBAsumHom += (1 - p1Freq) * p3Freq * p3Freq * (1 - p4Freq)
+      maxBABAsumHom += p1Freq * (1 - p3Freq) * p3Freq * (1 - p4Freq)
       if p3Freq >= p2Freq:
-        maxABBAsumB += (1 - p1Freq) * p3Freq * p3Freq * (1 - p4Freq)
-        maxBABAsumB += p1Freq * (1 - p3Freq) * p3Freq * (1 - p4Freq)
+        maxABBAsumD += (1 - p1Freq) * p3Freq * p3Freq * (1 - p4Freq)
+        maxBABAsumD += p1Freq * (1 - p3Freq) * p3Freq * (1 - p4Freq)
       else:
-        maxABBAsumB += (1 - p1Freq) * p2Freq * p2Freq * (1 - p4Freq)
-        maxBABAsumB += p1Freq * (1 - p2Freq) * p2Freq * (1 - p4Freq)
+        maxABBAsumD += (1 - p1Freq) * p2Freq * p2Freq * (1 - p4Freq)
+        maxBABAsumD += p1Freq * (1 - p2Freq) * p2Freq * (1 - p4Freq)
     except:
       continue
   #calculate D, f and fb
@@ -269,19 +278,19 @@ def ABBABABA(align, P1, P2, P3, P4):
   except:
     output["D"] = "NA"
   try:
-    output["f"] = (ABBAsum - BABAsum) / (maxABBAsum - maxBABAsum)
+    output["fG"] = (ABBAsum - BABAsum) / (maxABBAsumG - maxBABAsumG)
   except:
-    output["f"] = "NA"
+    output["fG"] = "NA"
   try:
-    output["mf"] = (ABBAsum - BABAsum) / (maxABBAsumB - maxBABAsumB)
+    output["fhom"] = (ABBAsum - BABAsum) / (maxABBAsumHom - maxBABAsumHom)
   except:
-    output["mf"] = "NA"
+    output["fhom"] = "NA"
+  try:
+    output["fd"] = (ABBAsum - BABAsum) / (maxABBAsumD - maxBABAsumD)
+  except:
+    output["fd"] = "NA"
   output["ABBA"] = ABBAsum
   output["BABA"] = BABAsum
-  output["maxABBA"] = maxABBAsum
-  output["maxBABA"] = maxBABAsum
-  output["maxABBA_B"] = maxABBAsumB
-  output["maxBABA_B"] = maxBABAsumB
   
   return output
 
@@ -308,15 +317,7 @@ if "--report" in sys.argv:
   report = int(getOptionValue("--report"))
 else:
   report = 100
-
-if "--haplotypes" in sys.argv:
-  haplotypes = True
-  genotypes = False
-  print "\nCalls are: haplotypes with phase\n"
-else:
-  haplotypes = False
-  genotypes = True
-  print "\nCalls are: genotypes without phase\n"
+nextReport = report
 
 
 if "-i" in sys.argv:
@@ -428,13 +429,63 @@ else:
   print "\nplease specify the minimum number of sites per window using -m\n"
   sys.exit()
 
+
+allScafs = True
+include = False
+exclude = False
+
+
 if "-S" in sys.argv:
-  scafsOfInterest = getOptionValue("-S").strip("\"").split(",")
+  scafsToInclude = getOptionValue("-S").strip("\"").split(",")
   if test or verbose:
-      print "scaffolds to analyse:", scafsOfInterest
+      print "scaffolds to analyse:", scafsToInclude
   allScafs = False
+  include = True
+
+
+if "--include" in sys.argv:
+  scafsFileName = getOptionValue("--include")
+  scafsFile = open(scafsFileName, "rU")
+  scafsToInclude = [line.rstrip() for line in scafsFile.readlines()]
+  if test or verbose:
+      print len(scafsToInclude), "scaffolds will be included"
+  allScafs = False
+  include = True
+
+
+
+if "--exclude" in sys.argv:
+  scafsFileName = getOptionValue("--exclude")
+  scafsFile = open(scafsFileName, "rU")
+  scafsToExclude = [line.rstrip() for line in scafsFile.readlines()]
+  if test or verbose:
+      print len(scafsToExclude), "scaffolds will be excluded."
+  allScafs = False
+  exclude = True
+
+
+if "--chromosome" in sys.argv:
+  chroms = getOptionValue("--chromosome").split(",")
+  checkChrom = True
+  allScafs = False
+  if test or verbose:
+    print "\nOnly using scafolds from the following chromosomes:"
+    print chroms
+  if "--assignments" not in sys.argv:
+    print "\nPlease provide a chromosome assignments file using '--assignments'."
+    sys.exit()
 else:
-  allScafs = True
+  checkChrom = False
+
+if checkChrom and "--assignments" in sys.argv:
+  chromsFileName = getOptionValue("--assignments")
+  chromsFile = open(chromsFileName, "rU")
+  chromsLines = chromsFile.readlines()
+  chromDict = {}
+  for chromsLine in chromsLines:
+    scaf,chrom = chromsLine.rstrip().split()
+    chromDict[scaf] = chrom
+
 
 
 if "--sep" in sys.argv:
@@ -458,37 +509,17 @@ analyses = []
 poly = True
 popPoly = False
 pairWisePoly = False
-polyBpp = False
-popPolyBpp = False
-indPoly = False
-pairWisePolyBpp = False
-allPairsPoly = False
 if "-a" in sys.argv:
   analysesList = getOptionValue("-a").strip("\"").split(",")
   if "S" in analysesList:
     poly = True
     analyses.append("S")
     mainOut.write(",S")
-  if "allPi" in analysesList:
-    poly = True
-    analyses.append("overallPi")
-    mainOut.write(",Pi")
-  if "popPi" in analysesList:
+  if "pi" in analysesList:
     popPoly = True
-    analyses.append("popPi")
+    analyses.append("pi")
     for popName in popNames:
-      mainOut.write("," + popName + "_Pi")
-  if "px" in analysesList:
-    popPoly = True
-    analyses.append("px")
-    for popName in popNames:
-      mainOut.write("," + popName + "_px")
-  if "indPi" in analysesList:
-    indPoly = True
-    analyses.append("indPi")
-    for indName in indNames:
-      if not includeOutGroup or indName not in vars()[outGroup]:
-        mainOut.write("," + indName + "_Pi")
+      mainOut.write("," + popName + "_pi")
   if "popS" in analysesList:
     popPoly = True
     analyses.append("popS")
@@ -499,11 +530,11 @@ if "-a" in sys.argv:
     analyses.append("dxy")
     for X in range(len(popNames) - 1):
       for Y in range(X + 1,len(popNames)):
-        mainOut.write("," + popNames[X] + popNames[Y] + "_dxy")
+        mainOut.write("," + popNames[X] + "_" + popNames[Y] + "Dxy")
   if "ABBABABA" in analysesList:
     if "P1" in popNames and "P2" in popNames and "P3" in popNames and "O" in popNames:
       analyses.append("ABBABABA")
-      mainOut.write(",ABBA,BABA,D,f,mf")
+      mainOut.write(",ABBA,BABA,D,fG,fhom,fd")
     else:
       print "\nPopulation names P1, P2, P3 and O must be present to do ABBA BABA analyses.\n"
       sys.exit()
@@ -552,7 +583,7 @@ subPos = []
 #read first line and store variables
 line = file.readline().rstrip()
 objects = line.split(sep)
-if allScafs or objects[0] in scafsOfInterest:
+if allScafs or (checkChrom and objects[0] in chromDict and chromDict[objects[0]] in chroms) or (include and objects[0] in scafsToInclude) or (exclude and objects[0] not in scafsToExclude):
   subSCF = objects[0]
   subPos.append(int(objects[1]))
   for name in indNames:
@@ -564,10 +595,10 @@ else:
 line = file.readline()
 objects = line.split(sep)
 
-windStart = 0
+windStart = 1
 lastWindNA = False
 
-while 1 == 1:
+while True:
   #each time we do the loop we will be doing one window. 
   #if the line in hand is not yet too far away or on another scaffold, add the line and read another
   if allScafs or subSCF is not None:
@@ -582,7 +613,7 @@ while 1 == 1:
     objects = line.split(sep)
     
   #now the line in hand is incompatible with the current window
-  #if there are enough sites, we do the LD test and then slide the start along
+  #if there are enough sites, we calculate stats and then slide the start along
   
   if len(subPos) >= minSites and subSCF is not None:
     
@@ -592,7 +623,7 @@ while 1 == 1:
     # add data to major outputs
     Sites = str(len(subPos))
     Scaf = (subSCF)
-    Position = str(windStart + (0.5*windSize))
+    Position = str(windStart + (windSize - 1)/2)
     Start = str(windStart)
     End = str(windStart + windSize)
     if mid(subPos):
@@ -600,25 +631,17 @@ while 1 == 1:
     else:
       Midpoint = "NA"
     
-    #if in genotype format, if diplois, split into haplos, if haploid, leave it
-    if genotypes:
-      for indName in indNames:
-        if ploidy[indName] == 2:
-          #its diploid, so split into two haplotypes
-          vars()["haplo" + indName] = haplo(vars()["sub" + indName])
-          vars()[indName + "A"] = vars()["haplo" + indName][::2]
-          vars()[indName + "B"] = vars()["haplo" + indName][1::2]
-          #if haploid, the haplotype is the same as the calls we've collected
-        elif ploidy[indName] == 1:
-          vars()[indName + "A"] = vars()["sub" + indName]
+    #if if diplois, split into haplos, if haploid, leave it
+    for indName in indNames:
+      if ploidy[indName] == 2:
+        #its diploid, so split into two haplotypes
+        vars()["haplo" + indName] = haplo(vars()["sub" + indName])
+        vars()[indName + "A"] = vars()["haplo" + indName][::2]
+        vars()[indName + "B"] = vars()["haplo" + indName][1::2]
+        #if haploid, the haplotype is the same as the calls we've collected
+      elif ploidy[indName] == 1:
+        vars()[indName + "A"] = vars()["sub" + indName]
     # this section is for working with haplotypes separated by a | which means it must all be diploid
-    elif haplotypes:
-      for indName in indNames:
-        vars()[indName + "A"] = []
-        vars()[indName + "B"] = []
-        for call in vars()["sub" + indName]:
-          vars()[indName + "A"].append(call[0])
-          vars()[indName + "B"].append(call[2])
     
     if test or verbose:
       print "\nHaplotypes generated. Length = ", len(vars()[indNames[1] + "A"])
@@ -630,7 +653,7 @@ while 1 == 1:
       vars()[popNames[popNumber] + "Haps"] = []
       for indName in vars()[popNames[popNumber]]:
         #first, if its haploid, add only one haplotype, else add 2
-        if genotypes and ploidy[indName] == 1:
+        if ploidy[indName] == 1:
           hapA = (indName + "A", "".join(vars()[indName + "A"]), popNumber)
           allHaps.append(hapA)
           vars()[popNames[popNumber] + "Haps"].append(hapA)
@@ -641,42 +664,14 @@ while 1 == 1:
           allHaps.append(hapB)
           vars()[popNames[popNumber] + "Haps"].append(hapA)
           vars()[popNames[popNumber] + "Haps"].append(hapB)
-        #if we're doing any individual based heterozygosity, then make a align object for each diploid individual
-        if indPoly:
-          vars()[indName + "Haps"] = [hapA,hapB]
-    if includeOutGroup:
-      for indName in vars()[outGroup]:
-        if genotypes and ploidy[indName] == 1:
-          hapA = (indName + "A", "".join(vars()[indName + "A"]), 999)
-          allHaps.append(hapA)
-        else:
-          hapA = (indName + "A", "".join(vars()[indName + "A"]), 999)
-          hapB = (indName + "B", "".join(vars()[indName + "B"]), 999)
-          allHaps.append(hapA)
-          allHaps.append(hapB)
-      #and include outgroups in populations
-      for popNumber in range(len(popNames)):
-        for indName in vars()[outGroup]:
-          if genotypes and ploidy[indName] == 1:
-            hapA = (indName + "A", "".join(vars()[indName + "A"]), 999)
-            vars()[popNames[popNumber] + "Haps"].append(hapA)
-          else:
-            hapA = (indName + "A", "".join(vars()[indName + "A"]), 999)
-            hapB = (indName + "B", "".join(vars()[indName + "B"]), 999)
-            vars()[popNames[popNumber] + "Haps"].append(hapA)
-            vars()[popNames[popNumber] + "Haps"].append(hapB)
     
     #now create egglib align objects for all of these sets of tuples
     # for whole set, for each pop and for pairs of pops and single inds if necessary
     allAlign = egglib.Align.create(allHaps)
     for popName in popNames:
       vars()[popName + "Align"] = egglib.Align.create(vars()[popName + "Haps"])
-    if indPoly:
-      for indName in indNames:
-        if not includeOutGroup or indName not in vars()[outGroup]:
-          vars()[indName + "Align"] = egglib.Align.create(vars()[indName + "Haps"])
         
-    if pairWisePoly or pairWisePolyBpp:
+    if pairWisePoly:
       for X in range(len(popNames) - 1):
         for Y in range(X + 1,len(popNames)):
           vars()[popNames[X] + popNames[Y] + "Haps"] = []
@@ -685,16 +680,7 @@ while 1 == 1:
           for hap in vars()[popNames[Y] + "Haps"]:
             vars()[popNames[X] + popNames[Y] + "Haps"].append(hap)
           vars()[popNames[X] + popNames[Y] + "Align"] = egglib.Align.create(vars()[popNames[X] + popNames[Y] + "Haps"])
-    
-    # if all pairwise comparisons among all individuals are being done, all pairs of two haplotypes need to be placed together in an egglib object
-    if allPairsPoly:
-      for X in range(len(popNames) - 1):
-        for Y in range(X + 1,len(popNames)):
-          for hapNumberX in range(len(vars()[popNames[X] + "Haps"])):
-            for hapNumberY in range(len(vars()[popNames[Y] + "Haps"])):
-              vars()[popNames[X] + popNames[Y] + "Haps" + str(hapNumberX) + str(hapNumberY)] = [vars()[popNames[X] + "Haps"][hapNumberX] , vars()[popNames[Y] + "Haps"][hapNumberY]]
-              vars()[popNames[X] + popNames[Y] + "Align" + str(hapNumberX) + str(hapNumberY)] = egglib.Align.create(vars()[popNames[X] + popNames[Y] + "Haps" + str(hapNumberX) + str(hapNumberY)])
-    
+        
     if test or verbose:
       print "\negglib alignments generated:"
       print "alignment length:", allAlign.ls(), "number of sequences:", allAlign.ns()
@@ -710,41 +696,12 @@ while 1 == 1:
         print "\nrunning population-specific polymorphism analyses"
       for popName in popNames:
         vars()[popName + "Poly"] = vars()[popName + "Align"].polymorphism(minimumExploitableData=minExD,allowMultipleMutations=True,ignoreFrequency=iF)
-    if indPoly:
-      if test or verbose:
-        print "\nrunning indivdual-specific polymorphism analyses"
-      for indName in indNames:
-        if not includeOutGroup or indName not in vars()[outGroup]:
-          vars()[indName + "Poly"] = vars()[indName + "Align"].polymorphism(minimumExploitableData=minExD,allowMultipleMutations=True,ignoreFrequency=iF)
     if pairWisePoly:
       if test or verbose:
         print "\nrunning pair-wise polymorphism analyses"
       for X in range(len(popNames) - 1):
         for Y in range(X + 1,len(popNames)):
           vars()[popNames[X] + popNames[Y] + "Poly"] = vars()[popNames[X] + popNames[Y] + "Align"].polymorphism(minimumExploitableData=minExD,allowMultipleMutations=True,ignoreFrequency=iF)
-    if polyBpp:
-      if test or verbose:
-        print "\nrunning Bio++ polymorphism analyses"
-      allPolyBpp = allAlign.polymorphismBPP()
-    if popPolyBpp:
-      if test or verbose:
-        print "\nrunning population-specific Bio++ polymorphism analyses"
-      for popName in popNames:
-        vars()[popName + "PolyBpp"] = vars()[popName + "Align"].polymorphismBPP()
-    if pairWisePolyBpp:
-      if test or verbose:
-        print "\nrunning pair-wise Bio++ polymorphism analyses"
-      for X in range(len(popNames) - 1):
-        for Y in range(X + 1,len(popNames)):
-          vars()[popNames[X] + popNames[Y] + "PolyBpp"] = vars()[popNames[X] + popNames[Y] + "Align"].polymorphismBPP()
-    if allPairsPoly:
-      if test or verbose:
-        print "\nrunning polymorphism analyses for all pairs of individuals"
-      for X in range(len(popNames) - 1):
-        for Y in range(X + 1,len(popNames)):
-          for hapNumberX in range(len(vars()[popNames[X] + "Haps"])):
-            for hapNumberY in range(len(vars()[popNames[Y] + "Haps"])):
-              vars()[popNames[X] + popNames[Y] + "Poly" + str(hapNumberX) + str(hapNumberY)] = vars()[popNames[X] + popNames[Y] + "Align" + str(hapNumberX) + str(hapNumberY)].polymorphism(minimumExploitableData=0,allowMultipleMutations=True,ignoreFrequency=iF)
     
     
     #sites passing minExD threshold
@@ -756,21 +713,8 @@ while 1 == 1:
     
     if "S" in analyses:
       mainOut.write("," + str(allPoly["S"]))
-      
-    if "overallPi" in analyses:
-      if allPoly["lseff"] >= minSites:
-        mainOut.write("," + str(round(allPoly["Pi"],4)))
-      else:
-        mainOut.write(",NA")
-    
-    if "popPi" in analyses:
-      for popName in popNames:
-        if vars()[popName + "Poly"]["lseff"] >= minSites:
-          mainOut.write("," + str(round(vars()[popName + "Poly"]["Pi"],4)))
-        else:
-          mainOut.write(",NA")
-    
-    if "px" in analyses:
+          
+    if "pi" in analyses:
       for popName in popNames:
         if vars()[popName + "Poly"]["lseff"] >= minSites:
           try:
@@ -779,15 +723,7 @@ while 1 == 1:
             mainOut.write(",NA")
         else:
           mainOut.write(",NA")
-    
-    if "indPi" in analyses:
-      for indName in indNames:
-        if not includeOutGroup or indName not in vars()[outGroup]:
-          if vars()[indName + "Poly"]["lseff"] >= minSites:
-            mainOut.write("," + str(round(vars()[indName + "Poly"]["Pi"],4)))
-          else:
-            mainOut.write(",NA")
-    
+        
     if "popS" in analyses:
       for popName in popNames:
         if vars()[popName + "Poly"]["lseff"] >= minSites:
@@ -808,14 +744,18 @@ while 1 == 1:
     
     if "ABBABABA" in analyses:
       try:
-        ABstats = ABBABABA(allAlign, popNames.index("P1"), popNames.index("P2"), popNames.index("P3"), popNames.index("O"))
+        if "P3a" in popNames and "P3b" in popNames:
+          ABstats = ABBABABA(allAlign, popNames.index("P1"), popNames.index("P2"), popNames.index("P3"), popNames.index("O"), popNames.index("P3a"), popNames.index("P3b"))
+        else:
+          ABstats = ABBABABA(allAlign, popNames.index("P1"), popNames.index("P2"), popNames.index("P3"), popNames.index("O"))
       except:
-        ABstats = {"ABBA":"NA", "BABA":"NA", "D":"NA", "f":"NA", "mf":"NA"}
+        ABstats = {"ABBA":"NA", "BABA":"NA", "D":"NA", "fG":"NA", "fhom":"NA", "fd":"NA"}
       mainOut.write("," + str(ABstats["ABBA"]))
       mainOut.write("," + str(ABstats["BABA"]))
       mainOut.write("," + str(ABstats["D"]))
-      mainOut.write("," + str(ABstats["f"]))
-      mainOut.write("," + str(ABstats["mf"]))
+      mainOut.write("," + str(ABstats["fG"]))
+      mainOut.write("," + str(ABstats["fhom"]))
+      mainOut.write("," + str(ABstats["fd"]))
     
     
     mainOut.write("\n")
@@ -850,7 +790,7 @@ while 1 == 1:
       Sites = str(len(subPos))
       SitesOverMinExD = "NA"
       Scaf = (subSCF)
-      Position = str(windStart + (0.5*windSize))
+      Position = str(windStart + (windSize-1)/2)
       Start = str(windStart)
       End = str(windStart + windSize)
       if mid(subPos):
@@ -861,21 +801,12 @@ while 1 == 1:
       mainOut.write(Scaf + "," + Position + "," + Start + "," + End + "," + Midpoint + "," + Sites + "," + SitesOverMinExD)
       
       #Fill in NAs for all requested data
-      if "overallPi" in analyses:
+      if "S" in analyses:
         mainOut.write(",NA")
-      
-      if "popPi" in analyses:
-        for popName in popNames:
-          mainOut.write(",NA")
       
       if "px" in analyses:
         for popName in popNames:
           mainOut.write(",NA")
-      
-      if "indPi" in analyses:
-        for indName in indNames:
-          if not includeOutGroup or indName not in vars()[outGroup]:
-            mainOut.write(",NA")
       
       if "popS" in analyses:
         for popName in popNames:
@@ -888,10 +819,7 @@ while 1 == 1:
       
       if "ABBABABA" in analyses:
         mainOut.write(",NA,NA,NA,NA,NA")
-      
-      if "S" in analyses:
-        mainOut.write(",NA")
-      
+            
       #and end the line
       mainOut.write("\n")
       
@@ -913,10 +841,10 @@ while 1 == 1:
         vars()["sub" + name] = vars()["sub" + name][i:]
     #otherwise its a new scaf, so we reset the subwindow and subScaf and read the next line
     else:
-      windStart = 0
+      windStart = 1
       
       if len(objects) > 1:
-        if allScafs or objects[0] in scafsOfInterest:
+        if allScafs or (checkChrom and objects[0] in chromDict and chromDict[objects[0]] in chroms) or (include and objects[0] in scafsToInclude) or (exclude and objects[0] not in scafsToExclude):
           subSCF = objects[0]
           subPos = [int(objects[1])]
       
@@ -930,8 +858,9 @@ while 1 == 1:
 
       else:
         break
-  if windowsTested > 0 and windowsTested % report == 0:
+  if windowsTested == nextReport:
     print windowsTested, "windows done ..."
+    nextReport += report
 
 
 file.close()

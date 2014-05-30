@@ -1,130 +1,93 @@
 #!/usr/bin/env Rscript
 
 # Figure_5.R
-# Plots for whole genome Heliconius data for Figure 5 as a PDF file
+# Generate the plot for Figure 5 as a PDF file
 
 # Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# November-December 2013
+# November-December 2013, May 2014
 
-# This script requires the file Hmel1-1_hox_RAD_matepair_chromosomes_Zupdated.agp
-# Available in Data Dryad repository http://datadryad.org/resource/doi:10.5061/dryad.dk712
+library(optparse)
+suppressMessages(library(ggplot2))
+library(plyr)
 
-############## Functions ###############
+options(width=1000)
 
-#function to rearrange scaffolds by chromosome and add a chromosome column
-as.chromosomes <- function(table,agp,chromNames,gap = 0) {
-  WG_table <- table[0,]
-  chromosome <- vector()
-  genome_pos <- vector()
-  chrom_pos <- vector()
-  i = 1
-  endLast = 0
-  for (name in chromNames){
-    agpCurrent <- subset(agp, chromosome == name)
-    starts = as.numeric(agpCurrent$start)
-    ends = as.numeric(agpCurrent$end)
-    chrom_table <- table[0,]
-    for (x in 1:length(agpCurrent$scaffold)) {
-      scaf_table <- subset(table, scaffold == agpCurrent$scaffold[x])
-      chrom_table <- rbind(chrom_table,scaf_table)
-      for (y in as.integer(scaf_table$position)) {
-        if (agpCurrent$ori[x] == "+"){
-          chrom_pos[i] <- y + starts[x]
-          genome_pos[i] <- y + starts[x] + endLast + gap
-          }
-        else {
-          chrom_pos[i] <- ends[x] - y
-          genome_pos[i] <- ends[x] - y  + endLast + gap
-          }
-        chromosome[i] <- name
-        i <- i + 1  
-        }
-      }
-    WG_table <- rbind(WG_table,chrom_table)
-    endLast = endLast + gap + ends[length(ends)]
-    }
-  WG_table <- cbind(chromosome,WG_table,chrom_pos,genome_pos)
-  WG_table <- WG_table[with(WG_table,order(genome_pos)),]
-  return(WG_table)
-  }
+match.pred.stat<-function(models,stat) {
+    stats<-c(paste0(stat,"_Outlier"),paste0(stat,"_Background"))
+    mdxy.stat<-subset(models,Model %in% stats)
+    mdxy.p2p3<-mdxy.stat[mdxy.stat$Variable=="P2P3_dxy",]
+    data.frame(Stat=stat,
+               P2P3_dxy.Outlier   =mdxy.p2p3$Mean[2],
+               P2P3_dxy.Background=mdxy.p2p3$Mean[1],
+               P2P3_dxy.effect    =mdxy.p2p3$Mean[2]/mdxy.p2p3$Mean[1]*100
+              )
+}
+
+get.dxy.props<-function(models) {
+    mdxy<-subset(models,grepl("dxy",Variable))
+    ab<-rbind(
+        match.pred.stat(mdxy,"Real"),
+        match.pred.stat(mdxy,"D"),
+        match.pred.stat(mdxy,"fGD0"),
+        match.pred.stat(mdxy,"fhomD0"),
+        match.pred.stat(mdxy,"fdD0")
+    )
+    ab$Stat<-revalue(factor(ab$Stat,levels=c("Real","D","fGD0","fhomD0","fdD0")),c(Real="Simulation",fGD0="fG", fhomD0="fhom", fdD0="fd"))
+    ab
+}
 
 
-########### input data ################
+make.stats<-function(altfile,nullfile, recombval) {
+    alt.models<-read.delim(altfile,stringsAsFactors=FALSE)
+    null.models<-read.delim(nullfile,stringsAsFactors=FALSE)
 
-# agp file carries chromosome information for mapped scaffolds
-# Available in Data Dryad repository http://datadryad.org/resource/doi:10.5061/dryad.dk712
-agp <- read.delim("Hmel1-1_hox_RAD_matepair_chromosomes_Zupdated.agp", as.is = T, sep = "\t", header = F)
+    null.models<-cbind(null.models[1:2],Alternate_t123=NA, Alternate_t23=NA,null.models[3:length(null.models)])
 
-names(agp) = c("chromosome", "start", "end", "order", "DN", "scaffold", "one", "length", "ori", "rec")
-agp <- subset(agp, DN == "D")
+    models<-rbind(alt.models,null.models)
 
+    stats<-ddply(models,.(Background_t123,Background_t21,Alternate_t123,Alternate_t23,ModelType),get.dxy.props)
+    stats<-stats[!is.na(stats$P2P3_dxy.effect),]
+    stats<-cbind(stats,Recombination=paste0("4Nr=",recombval))
 
-chromNames <- c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chrZ")
+    stats$ModelType<-revalue(factor(stats$ModelType),c("Null model"="Null Model","Ancestral structure"="Ancestral Structure","gene flow P2-P3"="Gene Flow P2-P3","gene flow P3-P2"="Gene Flow P3-P2"))
+    stats$ModelType<-factor(stats$ModelType, levels=c("Gene Flow P2-P3", "Gene Flow P3-P2", "Ancestral Structure", "Null Model"))
 
-
-#input data
-
-ABBA_table <- read.csv("Heliconius_autosome_windows.csv", as.is = T)
-ABBA_table_Z <- read.csv("Heliconius_Zchromosome_windows.csv", as.is = T)
-ABBA_table <- rbind(ABBA_table, ABBA_table_Z)
-
-#filter for windows with enough sites above the minimum data cutoff
-ABBA_table <- subset(ABBA_table, sitesOverMinExD >= 1000)
-
-#rearrange scaffolds by chromosome (this is only necessary for the third, chromosomal, plot)
-WG_table <- as.chromosomes(ABBA_table,agp,chromNames)
-WG_table <- subset(WG_table, chromosome %in% chromNames)
-
-#scaffolds containing wing patterning loci
-ybsub <- subset(ABBA_table, scaffold == "HE667780" & position >= 600000 & position <= 1000000)
-bdsub <- subset(ABBA_table, scaffold == "HE670865" & position >= 300000 & position <= 500000)
-
-###### plotting D and f against number of segregating sites
+    stats
+}
 
 
-pdf(file = "Figure_5.pdf", width = 3.3, height = 9.5)
-
-par(mfrow = c(3,1), mar = c(3,3,1,1))
-
-plot(ABBA_table$S/ABBA_table$sitesOverMinExD, ABBA_table$D, cex = 1,  , pch = 21, col = rgb(0,0,0,0), bg = rgb(0,0,0,0.05), bty = "n", xlab = "", ylab = "", xlim = c(0.05,0.35) )
-points(ybsub$S/ybsub$sitesOverMinExD, ybsub$D, cex = 1, pch = 1, col = rgb(1,0.9,0,1))
-points(bdsub$S/bdsub$sitesOverMinExD, bdsub$D, cex = 1, pch = 1, col = "red")
-segments(mean(ABBA_table$S/ABBA_table$sitesOverMinExD, na.rm = T), -1, mean(ABBA_table$S/ABBA_table$sitesOverMinExD, na.rm = T), 1, lty = 3)
-abline(quantile(ABBA_table$D,0.9,na.rm=T), 0, lty = 3)
-abline(quantile(ABBA_table$D,0.1,na.rm=T), 0, lty = 3)
+r50.stats<-make.stats(altfile  = "model_files_win10000_s0.01_l5000_r50.alternate_models.dxy.summary.sg.tsv",
+                      nullfile = "model_files_win10000_s0.01_l5000_r50.null_models.dxy.summary.sg.tsv",
+                      recombval = 0.01)
 
 
-plot(ABBA_table$S[ABBA_table$D >= 0]/ABBA_table$sitesOverMinExD[ABBA_table$D >= 0], ABBA_table$mf[ABBA_table$D >= 0], cex = 1,  , pch = 21, col = rgb(0,0,0,0), bg = rgb(0,0,0,0.05), ylim = c(0,1), bty = "n", xlab = "", ylab = "", xlim = c(0.05,0.35) )
-points(ybsub$S[ybsub$D >= 0]/ybsub$sitesOverMinExD[ybsub$D >= 0], ybsub$mf[ybsub$D >= 0], cex = 1, pch = 1, col = rgb(1,0.9,0,1))
-points(bdsub$S[bdsub$D >= 0]/bdsub$sitesOverMinExD[bdsub$D >= 0], bdsub$mf[bdsub$D >= 0], cex = 1, pch = 1, col = "red")
-segments(mean(ABBA_table$S[ABBA_table$D >= 0]/ABBA_table$sitesOverMinExD[ABBA_table$D >= 0], na.rm = T), 0, mean(ABBA_table$S[ABBA_table$D >= 0]/ABBA_table$sitesOverMinExD[ABBA_table$D >= 0], na.rm = T), 1, lty = 3)
-abline(quantile(ABBA_table$mf[ABBA_table$D >= 0],0.9,na.rm=T), 0, lty = 3)
+r5.stats<-make.stats(altfile  = "model_files_win10000_s0.01_l5000_r5.alternate_models.dxy.summary.sg.tsv",
+                      nullfile = "model_files_win10000_s0.01_l5000_r5.null_models.dxy.summary.sg.tsv",
+                      recombval = 0.001)
 
+stats<-rbind(r50.stats, r5.stats)
 
-### variance by number of segregating sites - plotted by chromosome
-library(RColorBrewer)
-cols <- c(brewer.pal(12,"Set3"),brewer.pal(9,"Set1"))
-
-
-#means and variances
-vD <- numeric(length <- length(chromNames))
-vmf <- numeric(length <- length(chromNames))
-meanS <- numeric(length <- length(chromNames))
-
-for (x in 1:length(chromNames)){
-  vD[x] <- var(WG_table$D[WG_table$chromosome == chromNames[x]], na.rm = T)
-  vmf[x] <- var(WG_table$mf[WG_table$chromosome == chromNames[x] & WG_table$D >= 0], na.rm = T)
-  meanS[x] <- mean(WG_table$S[WG_table$chromosome == chromNames[x]] / WG_table$sitesOverMinExD[WG_table$chromosome == chromNames[x]], na.rm = T)
-  }
-
-
-plot(vD ~ meanS, ylim = c(0,0.16), xlim = c(0.12,0.18), pch = 19, cex = 1.5, col = cols, xlab = "", ylab = "", bty = "n")
-
-points(vmf ~ meanS, pch = 15, cex = 1.5, col = cols)
-
-legend(0.16, 0.15,legend = c(1:20,"Z"), pch = 19, col = cols, ncol = 3, bty = "n", cex = 1, pt.cex = 1.2)
+pdf("Figure_5.pdf",width=6.75,height=4.5)
+ggplot(stats, aes(Stat, P2P3_dxy.effect, colour=ModelType)) +
+    geom_point(size=1) +
+    facet_grid(.~Recombination+ModelType, scales="free_x", space="free_x") +
+    scale_x_discrete(labels=c("Simulation"="Simulation", "D"=expression(italic("D")),"fG"=expression(italic(f["G"])), "fhom"=expression(italic(f["hom"])), "fd"=expression(italic(f["d"])))) +
+    scale_y_continuous(limits=c(0,110),breaks=c(0,20,40,60,80,100)) +
+    scale_colour_manual(values=c("#00ba38", "#619cff", "#f8766d", "#ad5c08")) +
+    guides(colour=FALSE) +
+    labs(y=expression(paste("Outlier to Non-Outlier P2-P3 ",italic(d[XY])," (%)")), colour="Model Type") +
+    theme_bw() +
+    theme(axis.ticks.x=element_blank(),
+          axis.title.x=element_blank(),
+          strip.text=element_text(size=6),
+          axis.text.x=element_text(size=6, angle=90, hjust=1, vjust=0.5),
+          axis.title.y=element_text(size=10),
+          legend.position="none")
 
 dev.off()
+
+warninglist<-warnings()
+if (!(is.null(warninglist))) warninglist

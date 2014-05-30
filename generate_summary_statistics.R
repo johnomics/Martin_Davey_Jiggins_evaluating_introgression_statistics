@@ -1,13 +1,13 @@
 #!/usr/bin/env Rscript
 
 # generate_summary_statistics.R
-# Generate dXY and partitioning statistics for models generated using run_model_combinations.pl
+# Generate dxy and partitioning statistics for models generated using run_model_combinations.py
 
 # Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# November-December 2013
+# November-December 2013, May 2014
 
 library(parallel)
 suppressMessages(library(reshape))
@@ -16,7 +16,7 @@ library(optparse)
 library(stringr)
 library(tools)
 
-options<-list(make_option(c("-T","--threads"),default=1,help="Number of threads [default %default]",metavar="numthreads"),
+options<-list(make_option(c("-t","--threads"),default=1,help="Number of threads [default %default]",metavar="numthreads"),
               make_option(c("-m","--modelfiles"),default="",type="character",help="Folder of CSV files with model output"),
               make_option(c("-r","--realdata"),default="",type="character",help="CSV file containing windows from real genome"),
               make_option(c("-l","--listofmodels"),default="",type="character",help="CSV file of model parameter combinations")
@@ -31,7 +31,7 @@ if (opt$realdata != "" & !file.exists(opt$realdata)) stop(paste("Real data file"
 
 partition.x<-function(model,stat,threshold=0.1,win) {
     outnum<-threshold*win
-    Partition<-sapply(rank(-model[,stat]), function(x) if (x<=outnum) "_Outlier" else "_Background")
+    Partition<-sapply(rank(-model[,stat],ties.method="random"), function(x) {if (x<=outnum) "_Outlier" else "_Background"})
     Partition<-paste0(stat,Partition)
     model<-cbind(model,Partition)
     names(model)[names(model)=="Partition"]<-paste0(stat,"_Partition")
@@ -71,77 +71,166 @@ get.model.summary<-function(models,column,pars=NULL) {
 
     model.sum<-summarise.tests(model.sum,model.stats,model.partition,"t",t.test)
     model.sum<-summarise.tests(model.sum,model.stats,model.partition,"w",wilcox.test)
-    
+
     model.sum
 }
 
-calc.mfD0<-function(df) {
-    apply(df,1,function(x) if ((is.na(x["D"])) || (as.numeric(x["D"])<0)) NA else as.numeric(x["mf"]))
+calc.fD0<-function(df, fstat) {
+    apply(df,1,function(x) if ((is.na(x["D"])) || (as.numeric(x["D"])<0)) NA else as.numeric(x[fstat]))
 }
 
+get.fs<-function(models, altprop, windows) {
 
-summarise.model<-function(filename) {
-    pars<-data.frame(str_match(filename,"Alternate_t123-(.+)_t23-(.+)\\.Background_t123-(.+)_t21-(.+)\\.(.+)\\.csv"),stringsAsFactors=FALSE)
+    models$fGD0<-calc.fD0(models,"fG")
+    models$fhomD0<-calc.fD0(models,"fhom")
+    models$fdD0<-calc.fD0(models,"fd")
+
+    models<-partition.x(models,"D",altprop,windows)
+    models<-partition.x(models,"fGD0",altprop,windows)
+    models<-partition.x(models,"fhomD0",altprop,windows)
+    models<-partition.x(models,"fdD0",altprop,windows)
+    
+    models
+}
+
+mean.pc<-function(stat) {
+    mean(stat, na.rm=TRUE) * 100
+}
+
+sd.pc<-function(stat) {
+    sd(stat, na.rm=TRUE) * 100
+}
+
+summarise.model<-function(model, modeldir, seqs) {
+    filestub = paste0("Alternate_t123-", model$Alternate_t123, "_t23-", model$Alternate_t23, ".Background_t123-", model$Background_t123, "_t21-", model$Background_t21, ".*.", seqs, ".csv")
+    filename = dir(modeldir, filestub, full.names=TRUE)
+    pars<-data.frame(str_match(filename,"Alternate_t123-(.+)_t23-(.+)\\.Background_t123-(.+)_t21-(.+)\\.(.+)\\..+\\.csv"),stringsAsFactors=FALSE)
     names(pars)<-c("File","Alternate_t123","Alternate_t23","Background_t123","Background_t21","Windows")
     pars$Windows<-as.numeric(pars$Windows)
-    
-    models<-read.csv(filename)
 
+    models<-read.csv(filename)
     models$Model<-factor(str_match(models$Model,"(.+)_t123")[,2],levels=c("Background","Alternate"))
     models$Model<-revalue(models$Model,c(Background="Real_Background",Alternate="Real_Outlier"))
 
-    models$mfD0<-calc.mfD0(models)
-
-    models<-partition.x(models,"D",0.1,pars$Windows)
-    models<-partition.x(models,"mfD0",0.1,pars$Windows)
-
+    models<-get.fs(models, 0.1, pars$Windows)
+    
     model.summary<-get.model.summary(models,"Model",pars)
     D.summary<-get.model.summary(models,"D_Partition",pars)
-    mfD0.summary<-get.model.summary(models,"mfD0_Partition",pars)
-    
-    model.sum<-rbind(model.summary,D.summary,mfD0.summary)
-    
+    fGD0.summary<-get.model.summary(models,"fGD0_Partition",pars)
+    fhomD0.summary<-get.model.summary(models,"fhomD0_Partition",pars)
+    fdD0.summary<-get.model.summary(models,"fdD0_Partition",pars)
+
+    model.sum<-rbind(model.summary, D.summary, fGD0.summary, fhomD0.summary, fdD0.summary)
+
     is.D.positive<-models$D>=0
+    real.outliers<-models$Model=="Real_Outlier"
+    
     model.comp<-data.frame(pars,
-        Stat=c("D","mfD0"),
-        Stat.Mean=c(mean(models$D,na.rm=TRUE)*100,mean(models$mfD0,na.rm=TRUE)*100),
-        Stat.SD=c(sd(models$D,na.rm=TRUE)*100,sd(models$mfD0,na.rm=TRUE)*100),
+        Stat=c("D","fGD0","fhomD0","fdD0"),
+        Stat.Mean=c(mean.pc(models$D), mean.pc(models$fGD0), mean.pc(models$fhomD0), mean.pc(models$fdD0)),
+        Stat.SD=c(sd.pc(models$D), sd.pc(models$fGD0), sd.pc(models$fhomD0), sd.pc(models$fdD0)),
         Dpos=sum(is.D.positive,na.rm=TRUE),
-        DposAlternate=sum(is.D.positive & models$Model=="Real_Outlier",na.rm=TRUE),
+        DposAlternate=sum(is.D.positive & real.outliers,na.rm=TRUE),
         DposOutlier=c(sum(is.D.positive & models$D_Partition=="D_Outlier", na.rm=TRUE),
-                      sum(is.D.positive & models$mfD0_Partition=="mfD0_Outlier", na.rm=TRUE)),
-        OutlierAlternate=c(sum(models$Model=="Real_Outlier" & models$D_Partition=="D_Outlier",na.rm=TRUE),
-                            sum(models$Model=="Real_Outlier" & models$mfD0_Partition=="mfD0_Outlier",na.rm=TRUE))
+                      sum(is.D.positive & models$fGD0_Partition=="fGD0_Outlier", na.rm=TRUE),
+                      sum(is.D.positive & models$fhomD0_Partition=="fhomD0_Outlier", na.rm=TRUE),
+                      sum(is.D.positive & models$fdD0_Partition=="fdD0_Outlier", na.rm=TRUE)),
+        OutlierAlternate=c(sum(real.outliers & models$D_Partition=="D_Outlier",na.rm=TRUE),
+                           sum(real.outliers & models$fGD0_Partition=="fGD0_Outlier",na.rm=TRUE),
+                           sum(real.outliers & models$fhomD0_Partition=="fhomD0_Outlier",na.rm=TRUE),
+                            sum(real.outliers & models$fdD0_Partition=="fdD0_Outlier",na.rm=TRUE))
     )
     model.comp$OutlierAlternatePC<-model.comp$OutlierAlternate/model.comp$DposOutlier*100
 
     list(model.sum,model.comp)
 }
 
-options(width=200)
+summarise.null<-function(model, modeldir, seqs) {
+    filepattern = paste0("^Background_t123-", model$Background_t123, "_t21-", model$Background_t21,".*.", seqs, ".csv")
+    filename = dir(modeldir, filepattern, full.names=TRUE)
+    pars<-data.frame(str_match(filename,"Background_t123-(.+)_t21-(.+)\\.(.+)\\..+\\.csv"),stringsAsFactors=FALSE)
+    names(pars)<-c("File","Background_t123","Background_t21","Windows")
+    pars$Windows<-as.numeric(pars$Windows)
 
-if (opt$modelfiles != "") {
-    csv.summary<-mclapply(dir(opt$modelfiles,"*.csv",full.names=TRUE),summarise.model,mc.cores=opt$threads)
+    models<-read.csv(filename)
+
+    models<-get.fs(models, 0.1, pars$Windows)
+    
+    D.summary<-get.model.summary(models,"D_Partition",pars)
+    fGD0.summary<-get.model.summary(models,"fGD0_Partition",pars)
+    fhomD0.summary<-get.model.summary(models,"fhomD0_Partition",pars)
+    fdD0.summary<-get.model.summary(models,"fdD0_Partition",pars)
+
+    model.sum<-rbind(D.summary, fGD0.summary, fhomD0.summary, fdD0.summary)
+
+    is.D.positive<-models$D>=0
+    model.comp<-data.frame(pars,
+        Stat=c("D","fGD0","fhomD0","fdD0"),
+        Stat.Mean=c(mean.pc(models$D), mean.pc(models$fGD0), mean.pc(models$fhomD0), mean.pc(models$fdD0)),
+        Stat.SD=c(sd.pc(models$D), sd.pc(models$fGD0), sd.pc(models$fhomD0), sd.pc(models$fdD0)),
+        Dpos=sum(is.D.positive,na.rm=TRUE),
+        DposOutlier=c(sum(is.D.positive & models$D_Partition=="D_Outlier", na.rm=TRUE),
+                      sum(is.D.positive & models$fGD0_Partition=="fGD0_Outlier", na.rm=TRUE),
+                      sum(is.D.positive & models$fhomD0_Partition=="fhomD0_Outlier", na.rm=TRUE),
+                      sum(is.D.positive & models$fdD0_Partition=="fdD0_Outlier", na.rm=TRUE))
+    )
+
+    list(model.sum,model.comp)
+}
+
+process.alt<-function(modeldir, model.df, seqs) {
+    model.list<-split(model.df, 1:nrow(model.df)) # Process df by rows
+    csv.summary<-mclapply(model.list, summarise.model, modeldir=modeldir, seqs=seqs, mc.cores=opt$threads)
 
     models<-rbind.fill(lapply(csv.summary,function(x) x[[1]]))
     model.comp<-rbind.fill(lapply(csv.summary,function(x) x[[2]]))
 
-    model.list<-read.csv(opt$listofmodels,stringsAsFactors=FALSE)
+    models<-merge(models,unique(model.df[,c("Background_t123","Background_t21","Alternate_t123","Alternate_t23","ModelType")]),by=c("Background_t123","Background_t21","Alternate_t123","Alternate_t23"))
+    write.table(models,file=paste0(opt$modelfiles,".alternate_models.dxy.summary.", seqs, ".tsv"),sep="\t",row.names=FALSE)
 
-    models<-merge(models,unique(model.list[,c("Background_t123","Background_t21","Alternate_t123","Alternate_t23","ModelType")]),by=c("Background_t123","Background_t21","Alternate_t123","Alternate_t23"))
-    write.table(models,file=paste0(opt$modelfiles,".dxy.summary.tsv"),sep="\t",row.names=FALSE)
+    model.comp<-merge(model.comp,unique(model.df[,c("Background_t123","Background_t21","Alternate_t123","Alternate_t23","ModelType")]),by=c("Background_t123","Background_t21","Alternate_t123","Alternate_t23"))
+    write.table(model.comp,file=paste0(opt$modelfiles,".alternate_models.partition.summary.", seqs, ".tsv"),sep="\t",row.names=FALSE)    
+}
 
-    model.comp<-merge(model.comp,unique(model.list[,c("Background_t123","Background_t21","Alternate_t123","Alternate_t23","ModelType")]),by=c("Background_t123","Background_t21","Alternate_t123","Alternate_t23"))
-    write.table(model.comp,file=paste0(opt$modelfiles,".partition.summary.tsv"),sep="\t",row.names=FALSE)
+process.null<-function(modeldir, model.df, seqs) {
+    model.list<-split(model.df, 1:nrow(model.df)) # Process df by rows
+    csv.summary<-mclapply(model.list, summarise.null, modeldir=modeldir, seqs=seqs, mc.cores=opt$threads)
+    
+    models<-rbind.fill(lapply(csv.summary,function(x) x[[1]]))
+    model.comp<-rbind.fill(lapply(csv.summary,function(x) x[[2]]))
+
+    models<-merge(models,unique(model.df[,c("Background_t123","Background_t21","ModelType")]),by=c("Background_t123","Background_t21"))
+    write.table(models,file=paste0(opt$modelfiles,".null_models.dxy.summary.", seqs, ".tsv"),sep="\t",row.names=FALSE)
+
+    model.comp<-merge(model.comp,unique(model.df[,c("Background_t123","Background_t21","ModelType")]),by=c("Background_t123","Background_t21"))
+    write.table(model.comp,file=paste0(opt$modelfiles,".null_models.partition.summary.", seqs, ".tsv"),sep="\t",row.names=FALSE)
+    
+}
+
+options(width=200)
+
+if (opt$modelfiles != "") {
+    
+    model.list<-read.csv(opt$listofmodels,stringsAsFactors=FALSE,colClasses="character")
+    
+    for (seqs in c("ms","sg")) {
+        process.alt(opt$modelfiles, model.list[model.list$ModelType != "Null model",], seqs)
+        process.null(opt$modelfiles, model.list[model.list$ModelType == "Null model",], seqs)
+    }
 }
 
 if (opt$realdata != "") {
     real<-read.csv(opt$realdata)
-    real$mfD0<-calc.mfD0(real)
+    real$fdD0<-calc.fD0(real, "fd")
     real<-partition.x(real,"D",0.1,nrow(real))
-    real<-partition.x(real,"mfD0",0.1,nrow(real))
+    real<-partition.x(real,"fGD0",0.1,nrow(real))
+    real<-partition.x(real,"fhomD0",0.1,nrow(real))
+    real<-partition.x(real,"fdD0",0.1,nrow(real))
     
     pars<-data.frame(File=opt$realdata,Windows=nrow(real))
-    real.stats<-rbind(get.model.summary(real,"D_Partition",pars),get.model.summary(real,"mfD0_Partition",pars))
+    real.stats<-rbind(get.model.summary(real,"D_Partition",pars),get.model.summary(real,"fGD0_Partition",pars),get.model.summary(real,"fhomD0_Partition",pars),get.model.summary(real,"fdD0_Partition",pars))
     write.table(real.stats,file=paste0(file_path_sans_ext(basename(opt$realdata)),".dxy.summary.tsv"),sep="\t",row.names=FALSE)
 }
+
+warninglist<-warnings()
+if(!(is.null(warninglist))) warninglist

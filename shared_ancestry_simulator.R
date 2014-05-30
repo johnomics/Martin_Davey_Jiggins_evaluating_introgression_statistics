@@ -2,12 +2,13 @@
 
 # shared_ancestry_simulator.R
 # Generate models using ms and seq-gen based on model specified by YAML file
+# Requires seq-gen to be installed separately
 
 # Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# October-December 2013
+# October-December 2013, May 2014
 
 library(tools)
 library(parallel)
@@ -18,15 +19,20 @@ library(ggplot2,quietly=TRUE)
 library(gridExtra,quietly=TRUE)
 suppressMessages(library(reshape,quietly=TRUE))
 
-# phyclust contains ms and seq-gen,
+# phyclust contains ms,
 # but also depends on ape,
 # making the DNAbin class available
 library(phyclust, quietly=TRUE)
 
+isnt.null <- function(x)!is.null(x)
+isnt.na <- function(x)!is.na(x)
+se <- function(x) {sd(x, na.rm = T)/sqrt(length(which(isnt.na(x))))}
+
 # Parse options
-options<-list(make_option(c("-T","--threads"),default=1,help="Number of threads [default %default]",metavar="numthreads"),
+options<-list(make_option(c("-t","--threads"),default=1,help="Number of threads [default %default]",metavar="numthreads"),
               make_option(c("-w","--windows"),default=100,help="Number of windows to simulate",metavar="numwindows"),
-              make_option(c("-c","--combined"),type="character",help="YAML file list with proportions for combined models, eg -c model1.yml:0.1,model2.yml:0.9")
+              make_option(c("-c","--combined"),type="character",help="YAML file list with proportions for combined models, eg -c model1.yml:0.1,model2.yml:0.9"),
+              make_option(c("-v","--verbose"),action="store_true", default=FALSE, help="Print ms command to standard out")
          )
 
 opt<-parse_args(OptionParser(option_list=options))
@@ -34,6 +40,25 @@ opt<-parse_args(OptionParser(option_list=options))
 if (is.null(opt$combined)) stop("Please specify model files in YAML format and proportions with -c, eg -c model1.yml:0.1,model2.yml:0.9")
 if(!is.numeric(opt$windows) | opt$windows<1) stop("Please specify a positive number of windows with -w")
 if(!is.numeric(opt$threads) | opt$threads<1) stop("Please specify a positive number of threads with -T")
+
+ms.to.DNAbin <- function(ms_output, nsam=0, inc_inv=FALSE, len=NULL) {
+    snp.strings <- ms_output[(length(ms_output)-nsam+1):length(ms_output)]
+    binary.mat.var <- t(matrix(as.numeric(unlist(sapply(snp.strings,strsplit, split = ""))),ncol = length(snp.strings)))
+    if (inc_inv==TRUE) {
+        stopifnot(mode(len)=="numeric" & len >= length(binary.mat.var[1,]))
+        nsam <- length(binary.mat.var[,1])
+        nvar <- length(binary.mat.var[1,])
+        binary.mat <- matrix(numeric(length=nsam*len), nrow=nsam)
+        positions <- floor(as.numeric(unlist(strsplit(ms_output[length(ms_output)-nsam],split="    "))[2:(nvar+1)])*len)+1
+        binary.mat[1:nsam,positions] <- binary.mat.var
+    } else {
+        binary.mat <- binary.mat.var
+    }
+    bases <- ifelse(binary.mat == "1", "t", "a")
+    rownames(bases)<-1:nsam
+    as.DNAbin(bases)
+}
+
 
 #Requires DNAbin input and vector of population names for each sequence in the sample
 nucdiv <- function(aln, popIndex) {
@@ -91,77 +116,105 @@ get.pop.slice<-function(popsites,bi.sites) {
     list(counts=counts,counts.bi=counts[,bi.sites],alleles=alleles,s=s)
 }
 
-get.abba.baba.stats<-function(counts,bi,P1,P2,P3,P4) {
-    ABBA = 0
-    BABA = 0
-    maxABBA = 0
-    maxBABA = 0
-    maxABBA_B = 0
-    maxBABA_B = 0
+
+get.abba.baba.stats<-function(counts,bi,P1,P2,P3,P4,P31=NULL,P32=NULL) {
+
+    ABBA <- 0
+    BABA <- 0
+    maxABBA_G <- 0
+    maxBABA_G <- 0
+    maxABBA_hom <- 0
+    maxBABA_hom <- 0
+    maxABBA_D <- 0
+    maxBABA_D <- 0
+
+    do.real.f <- (isnt.null(P31) & isnt.null(P32)) #if both P3 subsets are given, calculate real f
 
     for (i in 1:length(bi)){
-      i.bi.counts<-counts[,bi[i]]
-      alleles <- names(which(i.bi.counts > 0))
-      anc <- names(which(P4$counts.bi[,i] != 0 ))
-      if (length(anc) != 1) { anc <- names(which(i.bi.counts == max(i.bi.counts)))[1] }
-      derived = alleles[which(alleles != anc)]
-      P1df <- P1$counts.bi[derived,i] / sum(P1$counts.bi[,i])
-      P2df <- P2$counts.bi[derived,i] / sum(P2$counts.bi[,i])
-      P3df <- P3$counts.bi[derived,i] / sum(P3$counts.bi[,i])
-      P4df <- P4$counts.bi[derived,i] / sum(P4$counts.bi[,i])
-      ABBA <- sum(ABBA, (1 - P1df) * P2df * P3df * (1 - P4df), na.rm = TRUE)
-      BABA <- sum(BABA, P1df * (1 - P2df) * P3df * (1 - P4df), na.rm = TRUE)
-      maxABBA <- sum(maxABBA, (1 - P1df) * P3df * P3df * (1 - P4df), na.rm = TRUE)
-      maxBABA <- sum(maxBABA, P1df * (1 - P3df) * P3df * (1 - P4df), na.rm = TRUE)
-      if (is.na(P3df) == FALSE & is.na(P2df) == FALSE & P3df >= P2df){
-        maxABBA_B <- sum(maxABBA_B, (1 - P1df) * P3df * P3df * (1 - P4df), na.rm = TRUE)
-        maxBABA_B <- sum(maxBABA_B, P1df * (1 - P3df) * P3df * (1 - P4df), na.rm = TRUE)
-        } else{
-        maxABBA_B <- sum(maxABBA_B, (1 - P1df) * P2df * P2df * (1 - P4df), na.rm = TRUE)
-        maxBABA_B <- sum(maxBABA_B, P1df * (1 - P2df) * P2df * (1 - P4df), na.rm = TRUE)
-      }
+        i.bi.counts<-counts[,bi[i]]
+        alleles <- names(which(i.bi.counts > 0))
+        anc <- names(which(P4$counts.bi[,i] != 0 ))
+        if (length(anc) != 1) { anc <- names(which(i.bi.counts == max(i.bi.counts)))[1] }
+        derived = alleles[which(alleles != anc)]
+
+        P1df <- P1$counts.bi[derived,i] / sum(P1$counts.bi[,i])
+        P2df <- P2$counts.bi[derived,i] / sum(P2$counts.bi[,i])
+        P3df <- P3$counts.bi[derived,i] / sum(P3$counts.bi[,i])
+        P4df <- P4$counts.bi[derived,i] / sum(P4$counts.bi[,i])
+        
+        if (do.real.f) {
+          P31df <- P31$counts.bi[derived,i] / sum(P31$counts.bi[,i])
+          P32df <- P32$counts.bi[derived,i] / sum(P32$counts.bi[,i])
+        }
+        
+        ABBA <- sum(ABBA, (1 - P1df) * P2df * P3df * (1 - P4df), na.rm = TRUE)
+        BABA <- sum(BABA, P1df * (1 - P2df) * P3df * (1 - P4df), na.rm = TRUE)
+        
+        if (do.real.f) {
+            maxABBA_G <- sum(maxABBA_G, (1 - P1df) * P31df * P32df * (1 - P4df), na.rm = TRUE)
+            maxBABA_G <- sum(maxBABA_G, P1df * (1 - P31df) * P32df * (1 - P4df), na.rm = TRUE)
+        }
+        
+        maxABBA_hom <- sum(maxABBA_hom, (1 - P1df) * P3df * P3df * (1 - P4df), na.rm = TRUE)
+        maxBABA_hom <- sum(maxBABA_hom, P1df * (1 - P3df) * P3df * (1 - P4df), na.rm = TRUE)
+        
+        if (isnt.na(P3df) & isnt.na(P2df) & P3df >= P2df) {
+            maxABBA_D <- sum(maxABBA_D, (1 - P1df) * P3df * P3df * (1 - P4df), na.rm = TRUE)
+            maxBABA_D <- sum(maxBABA_D, P1df * (1 - P3df) * P3df * (1 - P4df), na.rm = TRUE)
+        } else {
+            maxABBA_D <- sum(maxABBA_D, (1 - P1df) * P2df * P2df * (1 - P4df), na.rm = TRUE)
+            maxBABA_D <- sum(maxBABA_D, P1df * (1 - P2df) * P2df * (1 - P4df), na.rm = TRUE)
+        }
     }
     output<-data.frame(ABBA=ABBA,BABA=BABA,
-               maxABBA=maxABBA, maxBABA=maxBABA,
-               maxABBA_B=maxABBA_B, maxBABA_B=maxBABA_B,
+               maxABBA_G=maxABBA_G, maxBABA_G=maxBABA_G,
+               maxABBA_hom=maxABBA_hom, maxBABA_hom=maxBABA_hom,
+               maxABBA_D=maxABBA_D, maxBABA_D=maxBABA_D,
                D=(ABBA - BABA) / (ABBA + BABA),
-               f=(ABBA - BABA) / (maxABBA - maxBABA),
-               mf=(ABBA - BABA) / (maxABBA_B - maxBABA_B)
-    )
-    output$mfD0<-apply(output,1,function(x) if ((is.na(x["D"])) || (as.numeric(x["D"]) < 0)) NA else as.numeric(x["mf"]))
+               fG=(ABBA - BABA) / (maxABBA_G - maxBABA_G),
+               fhom=(ABBA - BABA) / (maxABBA_hom - maxBABA_hom),
+               fd=(ABBA - BABA) / (maxABBA_D - maxBABA_D)
+               )
+    output$fdD0<-apply(output,1,function(x) if ((is.na(x["D"])) || (as.numeric(x["D"]) < 0)) NA else as.numeric(x["fd"]))
     output
 }
 
-# Requires DNAbin input, vector of population names for each sequence in the sample,
-# and names for P1, P2, P3 and P4
 
-ABBABABA <- function(aln, popIndex, P1, P2, P3, P4) {
+ABBABABA <- function(aln, poplist) {
+    #get allele counts to find variable sites
+    counts.all<-apply(aln,2,base.freq,freq=TRUE)
+    #get numbers of alleles at each site (counts/counts converts allele counts to 0 or 1)
+    num.alleles.all<-colSums(counts.all/counts.all,na.rm=TRUE)
+      
+    #biallelic sites
+    bi.all <- which(num.alleles.all == 2)
 
-  #get allele counts to find variable sites
-  counts.all<-apply(aln,2,base.freq,freq=TRUE)
-  #get numbers of alleles at each site (counts/counts converts allele counts to 0 or 1)
-  num.alleles.all<-colSums(counts.all/counts.all,na.rm=TRUE)
+    #varying sites
+    var.sites.all<-num.alleles.all>1
+    aln.var<-aln[,var.sites.all]
+    alleles.var<-num.alleles.all[var.sites.all]
+    s.all<-length(alleles.var)
+      
+    bi.var<-which(alleles.var==2)
 
-  #biallelic sites
-  bi.all <- which(num.alleles.all == 2)
 
-  #varying sites
-  var.sites.all<-num.alleles.all>1
-  aln.var<-aln[,var.sites.all]
+    P1.slice<-get.pop.slice(aln.var[poplist$P1,], bi.var)
+    P2.slice<-get.pop.slice(aln.var[poplist$P2,], bi.var)
+    P3.slice<-get.pop.slice(aln.var[poplist$P3,], bi.var)
+    P4.slice<-get.pop.slice(aln.var[poplist$P4,], bi.var)
 
-  alleles.var<-num.alleles.all[var.sites.all]
-  s.all<-length(alleles.var)
+    P3.split.index<-floor(length(poplist$P3)/2)
+    P31<-poplist$P3[1:P3.split.index]
+    P32<-poplist$P3[(P3.split.index+1):length(poplist$P3)]
+    P31.slice<-get.pop.slice(aln.var[P31,],bi.var)
+    P32.slice<-get.pop.slice(aln.var[P32,],bi.var)
 
-  bi.var<-which(alleles.var==2)
-
-  P1.slice<-get.pop.slice(aln.var[popIndex==P1,],bi.var)
-  P2.slice<-get.pop.slice(aln.var[popIndex==P2,],bi.var)
-  P3.slice<-get.pop.slice(aln.var[popIndex==P3,],bi.var)
-  P4.slice<-get.pop.slice(aln.var[popIndex==P4,],bi.var)
-
-  abba.baba.stats<-get.abba.baba.stats(counts.all,bi.all,P1.slice,P2.slice,P3.slice,P4.slice)
-
-  data.frame(S=s.all, P1_S=P1.slice$s, P2_S=P2.slice$s, P3_S=P3.slice$s, P4_S=P4.slice$s, abba.baba.stats)
+    abba.baba.stats<-get.abba.baba.stats(counts.all, bi.all,
+                                         P1.slice,   P2.slice,
+                                         P3.slice,   P4.slice,
+                                         P31.slice,  P32.slice)
+      
+    data.frame(S=s.all, P1_S=P1.slice$s, P2_S=P2.slice$s, P3_S=P3.slice$s, P4_S=P4.slice$s, abba.baba.stats)
 }
 
 check.pops<-function(pops,totalpops,popnum) {
@@ -172,24 +225,27 @@ check.pops<-function(pops,totalpops,popnum) {
     }
 }
 
-parse.model<-function(filename) {
-    model<-yaml.load_file(filename)
-
+parse.pops<-function(model) {
     if (!("pops" %in% names(model$ms))) stop("Please specify ms populations using the name 'pops'")
-    if (!("opts" %in% names(model$ms))) stop("Please specify ms options using the name 'opts'")
 
-    # Parse populations
     model$ms$popnum<-length(model$ms$pops)
     model$ms$nsam<-0
     model$ms$popnames<-vector()
+    model$ms$poplist<-list()
     model$ms$popsizes<-rep(NA,model$ms$popnum)
     for (pop in 1:model$ms$popnum) {
+        model$ms$poplist[[pop]]<-(model$ms$nsam+1):(model$ms$nsam+model$ms$pops[[pop]]$seqs)
         model$ms$nsam<-model$ms$nsam + model$ms$pops[[pop]]$seqs
         model$ms$popnames<-c(model$ms$popnames,rep(model$ms$pops[[pop]]$name,model$ms$pops[[pop]]$seqs))
         model$ms$popsizes[pop]<-model$ms$pops[[pop]]$seqs
     }
+    names(model$ms$poplist)<-paste0("P",1:model$ms$popnum)
     
-    # Validate migrations
+    model
+}
+
+parse.migrations<-function(model) {
+
     if ("migration" %in% names(model$ms$opts)) {
         if (!("n0" %in% names(model$ms$opts))) stop("Found migration options but no N0; please specify n0 ms option")
         for (i in model$ms$opts$migration) {
@@ -201,50 +257,88 @@ parse.model<-function(filename) {
         }
     }
 
-    # Validate splits
+    model
+}
+
+parse.splits<-function(model) {
     if ("split" %in% names(model$ms$opts)) {
-        if (!("n0" %in% names(model$ms$opts))) stop("Found split options but no N0; please specify n0 ms option")
-        if (!("genperyear" %in% names(model$ms$opts))) stop("Found split options but no generations per year; please specify genperyear ms option")
         for (i in model$ms$opts$split) {
             if (!("time" %in% names(i)) & !("units" %in% names(i))) stop("Please specify time or units for all split options")
             if (!("pops" %in% names(i))) stop("Please specify pops for all split options")
             check.pops(i$pops,length(model$ms$pops),2)
         }
     }
+    
+    model
+}
 
-    # Validate theta
-    if (!("s" %in% names(model$seqgen))) {
-        if (!("n0" %in% names(model$ms$opts))) stop("No seqgen s and no n0 provided for calculation; please specify seqgen s or ms n0 and ms mu")
-        if (!("mu" %in% names(model$ms$opts))) stop("No seqgen s and no mu provided for calculation; please specify seqgen s or ms n0 and ms mu")
-    }
-
-    # Validate N0
+parse.n0<-function(model) {
     if ("n0" %in% names(model$ms$opts)) {
         n0test<-eval(parse(text=model$ms$opts$n0))
         if (class(n0test) != "numeric") stop("n0 must be a number or an expression producing a number")
         if (length(n0test) != 1) stop("n0 should only be a single number")
     }
-
-    model$ms$thetaopt<-""
-    if ("theta" %in% names(model$ms$opts)) {
-        model$ms$thetaopt<-paste("-t",model$ms$opts$theta)
-    }
-
-    model$ms$sopt<-""
-    if ("s" %in% names(model$ms$opts)) {
-        model$ms$sopt<-paste("-s",model$ms$opts$s)
-    }
-    
-    model$ms$optstring<-paste(c("-I",model$ms$popnum,model$ms$popsizes,"-T"),collapse=" ")
-    if (model$ms$thetaopt != "") model$ms$optstring<-paste(model$ms$optstring,model$ms$thetaopt)
-    if (model$ms$sopt != "") model$ms$optstring<-paste(model$ms$optstring,model$ms$sopt)
     model
 }
 
-get.model.options<-function(model) {
-    
-    model$ms$opts$n0val<-eval(parse(text=model$ms$opts$n0))
+parse.theta<-function(model) {
+    model$ms$opts$theta <- model$seqgen$s * model$seqgen$l
+    model$ms$thetaopt<-paste("-t",model$ms$opts$theta)
+    model
+}
 
+parse.recombination<-function(model) {
+    if ("recombination" %in% names(model$ms$opts)) {
+        if (!is.numeric(model$ms$opts$recombination)) stop("Please supply a number for rho (recombination)")
+        model$ms$recombopt<-paste("-r",model$ms$opts$recombination,model$seqgen$l)
+    } else {
+        model$ms$recombopt <- ""
+    }
+    model
+}
+
+parse.flows<-function(model) {
+    if ("flow" %in% names(model$ms$opts)) {
+        for (i in model$ms$opts$flow) {
+            if (!("time" %in% names(i))) stop("Please specify time for all flow options")
+            if (!("f" %in% names(i))) stop("Please specify f (proportion of genome flowing) for all flow options")
+            check.pops(i$pops, length(model$ms$pops),2)
+        }
+    }
+    model
+}
+
+parse.seqgen<-function(model) {
+    if (!("seqgen" %in% names(model))) stop("Please specify seqgen options using the name 'seqgen'")
+    msg<-names(model$seqgen)
+    if (!("s" %in% msg) && !("m" %in% msg) && !("l" %in% msg)) stop("Please specify options m, l and s for seqgen")
+    return()
+}
+
+parse.model<-function(filename) {
+    model<-yaml.load_file(filename)
+
+    parse.seqgen(model)
+
+    model<-parse.pops(model)
+
+    if (!("opts" %in% names(model$ms))) stop("Please specify ms options using the name 'opts'")
+
+    model<-parse.n0(model)
+    model<-parse.theta(model)
+    model<-parse.recombination(model)
+
+    model<-parse.migrations(model)
+    model<-parse.splits(model)
+    model<-parse.flows(model)
+
+    model$ms$optstring<-paste(c("-T","-I",model$ms$popnum,model$ms$popsizes),collapse=" ")
+    if (model$ms$thetaopt != "") model$ms$optstring<-paste(model$ms$optstring,model$ms$thetaopt)
+    if (model$ms$recombopt != "") model$ms$optstring<-paste(model$ms$optstring,model$ms$recombopt)
+    model
+}
+
+get.migrations<-function(model) {
     if ("migration" %in% names(model$ms$opts)) {
         for (i in model$ms$opts$migration) {
             mig.rate<-i$mij * 4 * model$ms$opts$n0val
@@ -252,7 +346,10 @@ get.model.options<-function(model) {
             model$ms$optstring<-paste(model$ms$optstring,migopt)
         }
     }
+    model
+}
 
+get.splits<-function(model) {
     if ("split" %in% names(model$ms$opts)) {
         for (i in model$ms$opts$split) {
             if ("units" %in% names(i)) {
@@ -264,21 +361,35 @@ get.model.options<-function(model) {
             model$ms$optstring<-paste(model$ms$optstring,splitopt)
         }
     }
+    model
+}
 
-    if (!("s" %in% names(model$seqgen))) {
-        model$seqgen$s<-4 * model$ms$opts$n0val * model$ms$opts$mu
+get.flows<-function(model) {
+    if ("flow" %in% names(model$ms$opts)) {
+        sparepop<-length(model$ms$pops)+1
+        for (i in model$ms$opts$flow) {
+            flow.optstring<-paste("-es",i$time,i$pops[2],i$f,"-ej",i$time,sparepop,i$pops[1])
+            model$ms$optstring<-paste(model$ms$optstring,flow.optstring)
+            sparepop<-sparepop+1
+        }
     }
 
     model
 }
 
-simulate.window<-function(win,model) {
-    model<-get.model.options(model)
+get.model.options<-function(model) {
 
-    mstree<-ms(model$ms$nsam,1,model$ms$optstring)[3]
-    simseqs<-seqgen(opts=sprintf("-m%s -l %d -s %f -q",model$seqgen$m,model$seqgen$l,model$seqgen$s),newick.tree=mstree)[-1]
+    model$ms$opts$n0val<-eval(parse(text=model$ms$opts$n0))
 
-    # Convert Seq-Gen output to DNAbin object
+    model<-get.migrations(model)
+    model<-get.splits(model)
+    model<-get.flows(model)
+
+    model
+}
+
+seqgen.to.DNAbin<-function(simseqs, model) {
+
     bases<-matrix(nrow=model$ms$nsam,ncol=model$seqgen$l,byrow=TRUE)
     rownames(bases)<-1:model$ms$nsam
     for (s in 1:model$ms$nsam) {
@@ -286,13 +397,41 @@ simulate.window<-function(win,model) {
         seqstats[1]<-gsub('s','',seqstats[1])
         bases[as.numeric(seqstats[1]),]<-unlist(strsplit(tolower(seqstats[2]),''))
     }
-    bases<-as.DNAbin(bases)
+    as.DNAbin(bases)
+}
+
+get.seq.stats<-function(bases, prefix, model) {
+    nddf<-nucdiv4pop(bases, model$ms$popnames)
+    abdf<-ABBABABA(bases, model$ms$poplist)
+    names(nddf)<-paste0(prefix, names(nddf))
+    names(abdf)<-paste0(prefix, names(abdf))
+    cbind(nddf, abdf)
+}
+
+simulate.window<-function(win, model) {
+    model<-get.model.options(model)
+    if (opt$verbose) print(model$ms$optstring)
+    windf<-data.frame(blockNumber=win,blockName=win)
+    pardf<-data.frame(scalerate=model$seqgen$s,length=model$seqgen$l)
+
+    # Generate ms model
+    ms.out<-ms(nsam=model$ms$nsam, opts=paste(model$ms$optstring, "-t", model$ms$opts$theta))
+    # Get bases using ms variant sites
+    ms.bases<-ms.to.DNAbin(ms.out, model$ms$nsam, inc_inv=TRUE, len=model$seqgen$l)
+
+    # Get bases using seqgen
+    ms.trees<-ms.out[3:(grep("^segsites",ms.out)-1)]
+    seqgen.tmp.file<-paste("tmp", "seqgen", model$seqgen$m, model$seqgen$l, model$seqgen$s, win, "out", sep=".")
+    system(sprintf("seq-gen -m%s -l %d -s %f -p %d -q > %s",
+                            model$seqgen$m, model$seqgen$l, model$seqgen$s, length(ms.trees),
+                            seqgen.tmp.file),
+                            input=ms.trees,
+                            ignore.stderr=TRUE)
+    simseqs<-scan(seqgen.tmp.file, what="", sep="\n", quiet=TRUE)[-1]
+    sg.bases<-seqgen.to.DNAbin(simseqs, model)
+    file.remove(seqgen.tmp.file)
     
-    windf<-data.frame(blockNumber=win,blockName=win,sites=model$seqgen$l)
-    pardf<-data.frame(N0=model$ms$opts$n0val,s=model$seqgen$s)
-    nddf<-nucdiv4pop(bases,model$ms$popnames)
-    abdf<-ABBABABA(bases,model$ms$popnames,1,2,3,4)
-    cbind(windf,pardf,nddf,abdf)
+    cbind(windf,pardf,get.seq.stats(ms.bases, "ms.", model), get.seq.stats(sg.bases, "sg.", model))
 }
 
 simulate.model<-function(filename,proportion=1,cumprop=0) {
@@ -304,6 +443,7 @@ simulate.model<-function(filename,proportion=1,cumprop=0) {
     rbind.fill(mclapply(startwin:endwin,function(win) simulate.window(win,model),mc.cores=opt$threads))
 }
 
+options(width=200)
 propstats<-NULL
 if (!(is.null(opt$combined))) {
     prop<-unlist(strsplit(opt$combined,","))
@@ -317,9 +457,12 @@ if (!(is.null(opt$combined))) {
     propmodel<-unlist(mapply(function(f,p) rep(f,p*opt$windows),opt$propdf$Filename,opt$propdf$Proportion))
     propstats<-cbind(propstats,Model=as.character(propmodel))
 
-    propfilestub<-paste0(c(file_path_sans_ext(basename(opt$propdf$Filename)),opt$windows),collapse=".")
-    write.csv(propstats,paste0(propfilestub,".csv"))
+    ms.stats<-subset(propstats,select=grep("^sg.",names(propstats),invert=TRUE)) # Select all non-sg columns
+    sg.stats<-subset(propstats,select=grep("^ms.",names(propstats),invert=TRUE)) # Select all non-ms columns
+    names(ms.stats)<-gsub("^ms.","",names(ms.stats))
+    names(sg.stats)<-gsub("^sg.","",names(sg.stats))
 
+    propfilestub<-paste0(c(file_path_sans_ext(basename(opt$propdf$Filename)),opt$windows),collapse=".")
+    write.csv(ms.stats,paste0(propfilestub,".ms.csv"))
+    write.csv(sg.stats,paste0(propfilestub,".sg.csv"))
 }
-warninglist<-warnings()
-if (!(is.null(warninglist))) warninglist
