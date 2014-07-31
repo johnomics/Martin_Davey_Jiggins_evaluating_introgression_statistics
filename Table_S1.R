@@ -21,12 +21,12 @@ match.dxy.stat<-function(models,stat) {
                P2P3_dxy.Outlier.Mean    = round(mdxy.p2p3$Mean[2], 7),
                P2P3_dxy.Outlier.SD      = round(mdxy.p2p3$SD[2]  , 7),
                P2P3_dxy.Background.Mean = round(mdxy.p2p3$Mean[1], 7),
-               P2P3_dxy.Background.SD   = round(mdxy.p2p3$SD[1]  , 7)
+               P2P3_dxy.Background.SD   = round(mdxy.p2p3$SD[1]  , 7),
+               P2P3_dxy.Significant     = mdxy.p2p3$w.p.background.higher[1]<(0.01/mdxy.p2p3$ModelCount[1])
               )
 }
 
 get.dxy.stats<-function(dxy.summary) {
-
     ab<-rbind(
         match.dxy.stat(dxy.summary,"Real"),
         match.dxy.stat(dxy.summary,"D"),
@@ -73,8 +73,11 @@ get.model.summary<-function(fileprefix, filepostfix, recombval) {
                                   null.partition.summary[10])
     partition.summary<-rbind(alt.partition.summary, null.partition.summary)
 
+    model.counts<-table(unique(subset(dxy.summary,select=c("File","ModelType")))$ModelType)
+
+    dxy.summary$ModelCount<-sapply(dxy.summary$ModelType, function(x) model.counts[x])
     dxy.stats<-ddply(dxy.summary,
-                     .(Background_t123, Background_t21, Alternate_t123, Alternate_t23, ModelType),
+                     .(Background_t123, Background_t21, Alternate_t123, Alternate_t23, ModelType, ModelCount),
                      get.dxy.stats
                     )
     partition.stats<-ddply(partition.summary,
@@ -82,7 +85,8 @@ get.model.summary<-function(fileprefix, filepostfix, recombval) {
                            get.partition.stat
                     )
     stats<-merge(dxy.stats,partition.stats)
-    
+
+    stats$ModelCount<-NULL
     names(stats)[names(stats)=="Background_t123"]<-"t23"
     names(stats)[names(stats)=="Background_t21"]<-"t12"
     stats<-cbind(stats[1:2],
