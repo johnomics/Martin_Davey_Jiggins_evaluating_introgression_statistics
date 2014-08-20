@@ -1,13 +1,13 @@
 #!/usr/bin/env Rscript
 
-# Figures_3_S2_S3.R
+# Figures_3_S3.R
 # Plots for whole genome Heliconius data
 
 # Written for "Evaluating statistics for the identification of introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # John Davey:   jd626@cam.ac.uk
 # Simon Martin: shm45@cam.ac.uk
-# May 2014
+# August 2014
 
 
 ############## Functions ###############
@@ -47,8 +47,8 @@ for (chr in c(1:20, "Z")) {
 #input data
 
 
-ABBA_table <- read.csv("Heliconius_autosome_windows.csv", as.is = T)
-ABBA_table_Z <- read.csv("Heliconius_Zchromosome_windows.csv", as.is = T)
+ABBA_table <- read.csv("Heliconius_autosome_windows_5kb.csv", as.is = T)
+ABBA_table_Z <- read.csv("Heliconius_Zchromosome_windows_5kb.csv", as.is = T)
 ABBA_table <- rbind(ABBA_table, ABBA_table_Z)
 
 #filter for windows with enough sites above the minimum data cutoff
@@ -70,7 +70,7 @@ bdsub <- subset(ABBA_table, scaffold == "HE670865" & position >= 300000 & positi
 ###### plotting D and f against number of segregating sites
 
 
-png(file = "Figure_3.png", width = 1500, height = 4500, res = 500)
+png(file = "Figure_3_raw.png", width = 1500, height = 4500, res = 500) # Note that this figure was further modified using Inkscape.
 
 
 par(mfrow = c(3,1), mar = c(3,3,1,1))
@@ -121,7 +121,7 @@ dev.off()
 #### D and all fs agains pi
 
 
-png(file = "Figure_S2.png", width = 3500, height = 3500, res = 400)
+png(file = "Figure_S3.png", width = 3500, height = 3500, res = 400)
 
 
 par(mfrow = c(2,2), mar = c(3.5,3.5,1,1))
@@ -151,35 +151,6 @@ mtext(side=2, text = expression(italic("f"["d"])), line = 2)
 points(ybsub$mean_Pi[ybsub$D >= 0], ybsub$fd[ybsub$D >= 0], cex = 1, pch = 1, col = rgb(1,0.8,0,1))
 points(bdsub$mean_Pi[bdsub$D >= 0], bdsub$fd[bdsub$D >= 0], cex = 1, pch = 1, col = "red")
 
-
-dev.off()
-
-
-
-
-
-
-
-
-### variances in mean_Pi bins
-
-pi_cuts <- cut(mean_Pi, seq(0,0.06,0.01))
-
-D_vars <- sapply(1:length(levels(pi_cuts)), function(x){var(ABBA_table$D[pi_cuts == levels(pi_cuts)[x] & ABBA_table$D >= 0], na.rm = T)})
-fd_vars <- sapply(1:length(levels(pi_cuts)), function(x){var(ABBA_table$fd[pi_cuts == levels(pi_cuts)[x] & ABBA_table$D >= 0] , na.rm = T)})
-fG_vars <- sapply(1:length(levels(pi_cuts)), function(x){var(ABBA_table$fG[pi_cuts == levels(pi_cuts)[x]  & ABBA_table$D >= 0 & ABBA_table$fG >= 0 & ABBA_table$fG <= 1], na.rm = T)})
-fhom_vars <- sapply(1:length(levels(pi_cuts)), function(x){var(ABBA_table$fhom[pi_cuts == levels(pi_cuts)[x] & ABBA_table$D >= 0 & ABBA_table$fhom >= 0 & ABBA_table$fhom <= 1], na.rm = T)})
-
-png("Figure_S3.png", width = 2500, height = 2500, res = 400)
-par(mar = c(4,4,1,1))
-
-plot(D_vars, type = "b", pch = 19, xlab = "Pi bin", xaxt = "n", ylab = "Variance", ylim = c(0,0.1))
-axis(1, at=1:6, labels = c("0 - 0.01", "0.01 - 0.02", "0.02 - 0.03", "0.03 - 0.04", "0.04 - 0.05", "0.05 - 0.06"), las = 1) 
-points(fd_vars, type = "b")
-points(fG_vars, type = "b", pch = 2)
-points(fhom_vars, type = "b", pch = 3)
-
-legend(5,0.1, legend = c(expression(italic("D")), expression(italic("f"["G"])), expression(italic("f"["hom"])), expression(italic("f"["d"]))), pch = c(19,1,2,3), bty = "n")
 
 dev.off()
 

@@ -7,7 +7,7 @@
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# May 2014
+# August 2014
 
 
 ####################################################################################

@@ -7,7 +7,7 @@
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# November-December 2013, May 2014
+# November-December 2013, May 2014, August 2014
 
 library(parallel)
 suppressMessages(library(reshape))

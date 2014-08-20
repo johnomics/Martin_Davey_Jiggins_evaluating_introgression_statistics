@@ -7,7 +7,7 @@
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # John Davey:   jd626@cam.ac.uk
 # Simon Martin: shm45@cam.ac.uk
-# October-December 2013, May 2014
+# August 2014
 
 
 big_table <- read.delim("model_files_win10000_s0.01_l5000_r50.alternate_models.dxy.summary.sg.tsv", sep = "\t")

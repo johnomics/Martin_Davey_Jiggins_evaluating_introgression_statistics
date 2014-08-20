@@ -8,7 +8,7 @@
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
 # November-December 2013
-# Revised February-May 2014
+# Revised February-May 2014, August 2014
 
 import argparse
 from math import floor

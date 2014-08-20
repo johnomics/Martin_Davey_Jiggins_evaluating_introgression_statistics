@@ -1,13 +1,13 @@
 #!/usr/bin/env Rscript
 
-# Table_S1.R
-# Generate table S1 of all model results from summary statistics
+# model_results_table.R
+# Generate table of all model results from summary statistics
 
 # Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# November-December 2013, May 2014
+# November-December 2013, May 2014, August 2014
 
 library(plyr)
 
@@ -100,4 +100,4 @@ get.model.summary<-function(fileprefix, filepostfix, recombval) {
 r50<-cbind("4Nr"=0.01, get.model.summary("model_files_win10000_s0.01_l5000_r50.", ".summary.sg.tsv", 50))
 r5<-cbind("4Nr"=0.001,get.model.summary("model_files_win10000_s0.01_l5000_r5.", ".summary.sg.tsv", 5))
 
-write.table(rbind(r50,r5), file="Table_S1.tsv", sep="\t", quote=FALSE, row.names=FALSE)
+write.table(rbind(r50,r5), file="model_results_table.txt", sep="\t", quote=FALSE, row.names=FALSE)

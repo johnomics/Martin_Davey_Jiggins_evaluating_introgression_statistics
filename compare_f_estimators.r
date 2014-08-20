@@ -1,19 +1,21 @@
 #!/usr/bin/env Rscript
 
-# compare_f_estimators.R
-# Simulations to compare D statistic and f estimators and make Figure 2 and Figure S1.
+# compare_f_estimators.r
+# Simulations to compare D statistic and f estimators - Figure 2, Figure S1.
 
 # Written for "Evaluating the use of ABBA-BABA statistics to locate introgressed loci"
 # by Simon H. Martin, John W. Davey and Chris D. Jiggins
 # Simon Martin: shm45@cam.ac.uk
 # John Davey:   jd626@cam.ac.uk
-# May 2014
+# August 2014
 
 
 
 library(phyclust)
 library(parallel)
 library(plyr)
+
+
 
 ms.to.DNAbin <- function(ms_output, nsam=0, inc_inv=FALSE, len=NULL) {
     snp.strings <- ms_output[(length(ms_output)-nsam+1):length(ms_output)]
@@ -198,9 +200,9 @@ nreps = 100
 
 stats <- c("D","fG", "fhom","fd")
 
-t = 100
-len = 10000
-rec_number = 100
+t = 50
+len = 5000
+rec_number = 5
 tGF = c(0.1,0.5)
 scale=0.01
 theta = paste("-t", t)
@@ -293,11 +295,11 @@ sd_data_23_D0 <- apply(all_data_23_D0,c(1,3,4,5),sd,na.rm=T) # get std err for a
 
 
 ######################################################################################
-### plot data from seqgen simulations for Figure S1
+### plot data from seqgen simulations
 
 jit = c(-0.01,0.01)
 cols = c("red","blue")
-#plot
+
 png(file = paste("f_predictors", "_reps", nreps, "_l", len, "_r", rec_number, "_GF", paste(tGF, collapse = "_"), "_seqgen", "_scale", scale, ".png", sep = ""), width = 2000, height = 3500, res = 400)
 
 par(mfrow = c(4,2), mar = c(3.5,3.5,2,1))
@@ -383,10 +385,10 @@ dev.off()
 
 
 ####################################################################################################
-### simplified diagram for Figure 2
+### simplified diagram for paper
 
 
-png(file = "Figure_2.png", width = 2000, height = 2000, res = 400)
+png(file = "Figure_2_raw.png", width = 2000, height = 2000, res = 400)
 
 par(mfrow = c(2,2), mar = c(2.25,2.25,0.25,0.25), ann = F)
 
@@ -395,12 +397,15 @@ plot(0, xlim = c(0,1), ylim = c(0,1), cex = 0, xaxt="n", yaxt="n", bty = "o")
 abline(0,1,lty=2, lwd = 1.5, col = "gray")
 points(fs,mean_data_32[,"D",1,"seqgen"], xlim = c(0,1), ylim = c(0,1), pch = 19)
 segments(fs, mean_data_32[,"D",1,"seqgen"] - sd_data_32[,"D",1,"seqgen"], fs, mean_data_32[,"D",1,"seqgen"] + sd_data_32[,"D",1,"seqgen"], lwd = 1.5)
+#axis(1,at=c(0,.5,1))
 axis(2,at=c(0,.5,1))
 
 plot(0, xlim = c(0,1), ylim = c(0,1), cex = 0, xaxt="n", yaxt="n", bty = "o")
 abline(0,1,lty=2, lwd = 1.5, col = "gray")
 points(fs,mean_data_23[,"D",1,"seqgen"], xlim = c(0,1), ylim = c(0,1), pch = 19)
 segments(fs, mean_data_23[,"D",1,"seqgen"] - sd_data_23[,"D",1,"seqgen"], fs, mean_data_23[,"D",1,"seqgen"] + sd_data_23[,"D",1,"seqgen"], lwd = 1.5)
+#axis(1,at=c(0,.5,1))
+#axis(2,at=c(0,.5,1))
 
 
 #fd
@@ -416,7 +421,7 @@ abline(0,1,lty=2, lwd = 1.5, col = "gray")
 points(fs,mean_data_23[,"fd",1,"seqgen"], xlim = c(0,1), ylim = c(0,1), pch = 19)
 segments(fs, mean_data_23[,"fd",1,"seqgen"] - sd_data_23[,"fd",1,"seqgen"], fs, mean_data_23[,"fd",1,"seqgen"] + sd_data_23[,"fd",1,"seqgen"], lwd = 1.5)
 axis(1,at=c(0,.5,1))
-
+#axis(2,at=c(0,.5,1))
 
 
 dev.off()
