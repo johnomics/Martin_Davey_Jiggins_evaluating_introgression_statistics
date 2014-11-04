@@ -221,9 +221,9 @@ def ABBABABA(align, P1, P2, P3, P4, P3a = None, P3b = None):
   p3Align = AlignByGroupNumber(align,P3)
   p4Align = AlignByGroupNumber(align,P4)
   if P3a == None or P3b == None:
-    P3Half = len(P3Align)/2
-    P3aAlign = P3Align.slice(0,P3Half)
-    P3bAlign = P3Align.slice(P3Half,len(P3Align))
+    p3Half = len(p3Align)/2
+    p3aAlign = p3Align.slice(0,p3Half)
+    p3bAlign = p3Align.slice(p3Half,len(p3Align))
   else:
     p3aAlign = AlignByGroupNumber(align,P3a)
     p3bAlign = AlignByGroupNumber(align,P3b)
