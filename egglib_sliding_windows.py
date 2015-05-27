@@ -157,9 +157,11 @@ def dxy(align): # "align" if the egglib alignment object, this consistes of sequ
         diffs = sum(sA != sB for sA, sB in zippedSeqs if sA != "N" and sB != "N")
         #sites = sum(sA != "N" and sB != "N" for sA, sB in zippedSeqs)
         sites = len([site for site in zippedSeqs if site[0] != "N" and site[1] != "N"])
-                  
+        #now add this pairwise dxy to the total and add 1 to the number of pairs considered
+        pairwiseSum += 1.0*diffs/sites
+        totalPairs += 1     
     #after considering all positions for each pair of haplotypes, return the average pairwise pi
-    return 1.0 * diffs/sites
+    return pairwiseSum/totalPairs
 
 
 def px(align):
