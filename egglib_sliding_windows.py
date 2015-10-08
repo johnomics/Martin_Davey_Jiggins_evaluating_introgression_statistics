@@ -199,7 +199,7 @@ def colFreqs(align, columnNumber):
     output["G"] = Gcount/total
     output["T"] = Tcount/total
   else:
-    output = {"A":"NA", "C":"NA", "G":"NA", "T":"NA"}
+    output = {"A":None, "C":None, "G":None, "T":None}
   return output
 
 def colBaseCounts(align, columnNumber):
@@ -231,6 +231,8 @@ def ABBABABA(align, P1, P2, P3, P4, P3a = None, P3b = None):
     p3bAlign = AlignByGroupNumber(align,P3b)
   ABBAsum = 0.0
   BABAsum = 0.0
+  ABBAsumG = 0.0
+  BABAsumG = 0.0
   maxABBAsumG = 0.0
   maxBABAsumG = 0.0
   maxABBAsumHom = 0.0
@@ -258,11 +260,10 @@ def ABBABABA(align, P1, P2, P3, P4, P3a = None, P3b = None):
     p3aFreq = colFreqs(p3aAlign, i)[derived]
     p3bFreq = colFreqs(p3bAlign, i)[derived]
     # get weigtings for ABBAs and BABAs
-    try: # this was added to ignore crashes when there is missing data for a population at a site - we just ignore these sites
+    #only use this site if we have frequencies for all pops
+    try:
       ABBAsum += (1 - p1Freq) * p2Freq * p3Freq * (1 - p4Freq)
       BABAsum += p1Freq * (1 - p2Freq) * p3Freq * (1 - p4Freq)
-      maxABBAsumG += (1 - p1Freq) * p3aFreq * p3bFreq * (1 - p4Freq)
-      maxBABAsumG += p1Freq * (1 - p3aFreq) * p3bFreq * (1 - p4Freq)
       maxABBAsumHom += (1 - p1Freq) * p3Freq * p3Freq * (1 - p4Freq)
       maxBABAsumHom += p1Freq * (1 - p3Freq) * p3Freq * (1 - p4Freq)
       if p3Freq >= p2Freq:
@@ -273,6 +274,14 @@ def ABBABABA(align, P1, P2, P3, P4, P3a = None, P3b = None):
         maxBABAsumD += p1Freq * (1 - p2Freq) * p2Freq * (1 - p4Freq)
     except:
       continue
+    
+    try:
+      maxABBAsumG += (1 - p1Freq) * p3aFreq * p3bFreq * (1 - p4Freq)
+      maxBABAsumG += p1Freq * (1 - p3aFreq) * p3bFreq * (1 - p4Freq)
+      ABBAsumG += (1 - p1Freq) * p2Freq * p3Freq * (1 - p4Freq)
+      BABAsumG += p1Freq * (1 - p2Freq) * p3Freq * (1 - p4Freq)
+    except:
+      continue
   #calculate D, f and fb
   output = {}
   try:
@@ -280,7 +289,7 @@ def ABBABABA(align, P1, P2, P3, P4, P3a = None, P3b = None):
   except:
     output["D"] = "NA"
   try:
-    output["fG"] = (ABBAsum - BABAsum) / (maxABBAsumG - maxBABAsumG)
+    output["fG"] = (ABBAsumG - BABAsumG) / (maxABBAsumG - maxBABAsumG)
   except:
     output["fG"] = "NA"
   try:
