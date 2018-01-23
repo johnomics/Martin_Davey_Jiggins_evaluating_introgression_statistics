@@ -1,5 +1,5 @@
 ___
-**NOTE: The script `egglib_sliding_windows.py` is no longer recommended. Users have reported an error associated with the egglib `polymorphism()` function. Scripts that replace the functionality of `egglib_sliding_windows.py` can be found at https://github.com/simonhmartin/genomics_general. **
+**NOTE:** The script `egglib_sliding_windows.py` is no longer recommended. Users have reported an error associated with the egglib `polymorphism()` function. Scripts that replace the functionality of `egglib_sliding_windows.py` can be found at https://github.com/simonhmartin/genomics_general.
 ___
 
 
@@ -57,6 +57,8 @@ Summary files are produced for alternate and null models and for ms and Seq-Gen 
 
 
 # Real Heliconius data
+
+**NOTE:** The script `egglib_sliding_windows.py` is no longer recommended. Users have reported an error associated with the egglib `polymorphism()` function. Scripts that replace the functionality of `egglib_sliding_windows.py` can be found at https://github.com/simonhmartin/genomics_general.
 
 Real data for the Heliconius genome, split into 5 kb windows, can be found in the files `Heliconius_autosome_windows.csv` and `Heliconius_Zchromosome_windows.csv`.
 
